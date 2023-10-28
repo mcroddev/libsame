@@ -20,6 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include(CheckSymbolExists)
+include(CheckIncludeFile)
+
 function(lib_handle NAME)
   target_link_libraries(${NAME} PRIVATE libsame-build-settings-c)
   target_include_directories(${NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -34,6 +37,9 @@ function(lib_handle NAME)
 
   set_target_properties(${NAME} PROPERTIES OUTPUT_NAME ${OUTPUT_NAME})
 endfunction()
+
+check_symbol_exists(sinf "math.h" LIBSAME_HAVE_SINF)
+check_include_file(stdint.h _STDINT_H_)
 
 set(SRCS libsame.c)
 set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/compiler.h

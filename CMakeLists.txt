@@ -203,7 +203,10 @@ function(libsame_options_handle)
   option(LIBSAME_BUILD_BENCHMARKS "Build the benchmarks" OFF)
   option(LIBSAME_BUILD_EXAMPLES "Build the examples" OFF)
 
+  option(LIBSAME_DOWNLOAD_DEPS "Download missing dependencies" OFF)
+
   option(LIBSAME_WARNINGS_ARE_ERRORS "Build libsame treating warnings as errors" OFF)
+
   option(LIBSAME_STATIC_LIBRARY "Build libsame as a static library" OFF)
   option(LIBSAME_SHARED_LIBRARY "Build libsame as a shared library" OFF)
 endfunction()
@@ -211,6 +214,9 @@ endfunction()
 function(libsame_tests_enable)
   include(FetchContent)
 
+  # XXX: googletest follows the Abseil Live at Head philosophy, as such
+  # regardless of LIBSAME_DOWNLOAD_DEPS being enabled or not, this is the
+  # recommended way to pull in googletest.
   FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
@@ -228,21 +234,31 @@ function(libsame_tests_enable)
 endfunction()
 
 function(libsame_benchmarks_enable)
-  include(FetchContent)
+  find_package(benchmark QUIET)
 
-  FetchContent_Declare(
-    benchmark
-    GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG v1.8.3
-  )
+  if (NOT benchmark_FOUND)
+    if (NOT LIBSAME_DOWNLOAD_DEPS)
+      message(FATAL_ERROR
+              "benchmark was not found, and downloading missing dependencies "
+              "is disabled.")
+    else()
+      include(FetchContent)
 
-  # Download any dependencies needed when building benchmark.
-  set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON CACHE BOOL "" FORCE)
+      FetchContent_Declare(
+        benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.8.3
+      )
 
-  # Do not build the unit tests.
-  set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+      # Download any dependencies needed when building benchmark.
+      set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON CACHE BOOL "" FORCE)
 
-  FetchContent_MakeAvailable(benchmark)
+      # Do not build the unit tests.
+      set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+
+      FetchContent_MakeAvailable(benchmark)
+    endif()
+  endif()
 endfunction()
 
 libsame_build_settings_c_configure()

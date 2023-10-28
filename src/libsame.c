@@ -97,6 +97,15 @@
 
 #define LIBSAME_PI 3.141593F
 
+LIBSAME_STATIC float libsame_sinf(const float x) {
+#if defined(__STDC__) && defined(__STDC_VERSION__) && \
+    (__STDC_VERSION__ >= 199901L) && LIBSAME_HAVE_SINF
+  return sinf(x);
+#else
+  return (float)sin((double)x);
+#endif
+}
+
 LIBSAME_STATIC void libsame_field_add(uint8_t *const LIBSAME_RESTRICT data,
                                       size_t *LIBSAME_RESTRICT data_size,
                                       const char *LIBSAME_RESTRICT const field,
@@ -106,8 +115,10 @@ LIBSAME_STATIC void libsame_field_add(uint8_t *const LIBSAME_RESTRICT data,
   LIBSAME_ASSERT(field != NULL);
   LIBSAME_ASSERT(field_len > 0);
 
-  // XXX: LIBSAME_CALLSIGN_LEN is the largest field, if this ever changes this
-  // must change as well.
+  /*
+   * XXX: LIBSAME_CALLSIGN_LEN is the largest field, if this ever changes this
+   * must change as well.
+   */
   LIBSAME_ASSERT(field_len <= LIBSAME_CALLSIGN_LEN);
 
   memcpy(&data[*data_size], field, field_len);
@@ -123,14 +134,14 @@ LIBSAME_STATIC void libsame_afsk_gen(
   LIBSAME_ASSERT(data != NULL);
   LIBSAME_ASSERT(data_size > 0);
 
-  // ~9.50% of time in this function is spent on this operation.
   const float freq = ((data[ctx->afsk.data_pos] >> ctx->afsk.bit_pos) & 1)
                          ? LIBSAME_AFSK_MARK_FREQ
                          : LIBSAME_AFSK_SPACE_FREQ;
 
   const float t = (float)ctx->afsk.sample_num / (float)LIBSAME_SAMPLE_RATE;
 
-  const int16_t sample = (int16_t)(sinf(LIBSAME_PI * 2 * t * freq) * INT16_MAX);
+  const int16_t sample =
+      (int16_t)(libsame_sinf(LIBSAME_PI * 2 * t * freq) * INT16_MAX);
   ctx->sample_data[sample_pos] = sample;
 
   ctx->afsk.sample_num++;
@@ -144,8 +155,10 @@ LIBSAME_STATIC void libsame_afsk_gen(
       ctx->afsk.data_pos++;
 
       if (ctx->afsk.data_pos >= data_size) {
-        // By the time we get here, we're completely done caring about the AFSK
-        // state for the current state; clear it to prepare for the next one.
+        /*
+         * By the time we get here, we're completely done caring about the AFSK
+         * state for the current state; clear it to prepare for the next one.
+         */
         memset(&ctx->afsk, 0, sizeof(ctx->afsk));
       }
     }
@@ -169,10 +182,10 @@ LIBSAME_STATIC void libsame_attn_sig_gen(
   const float calc = LIBSAME_PI * 2 * t;
 
   const float first_freq =
-      sinf(calc * LIBSAME_ATTN_SIG_FREQ_FIRST) / sizeof(int16_t);
+      libsame_sinf(calc * LIBSAME_ATTN_SIG_FREQ_FIRST) / sizeof(int16_t);
 
   const float second_freq =
-      sinf(calc * LIBSAME_ATTN_SIG_FREQ_SECOND) / sizeof(int16_t);
+      libsame_sinf(calc * LIBSAME_ATTN_SIG_FREQ_SECOND) / sizeof(int16_t);
 
   ctx->sample_data[sample_pos] =
       (int16_t)((first_freq + second_freq) * INT16_MAX);
@@ -226,7 +239,7 @@ void libsame_ctx_init(struct libsame_gen_ctx *const LIBSAME_RESTRICT ctx,
   memcpy(&ctx->header_data, LIBSAME_INITIAL_HEADER,
          sizeof(LIBSAME_INITIAL_HEADER));
 
-  // We want to start populating the fields after the first dash.
+  /* We want to start populating the fields after the first dash. */
   ctx->header_size = LIBSAME_PREAMBLE_NUM + LIBSAME_ASCII_ID_LEN + 1;
 
   libsame_field_add(ctx->header_data, &ctx->header_size,
@@ -253,7 +266,7 @@ void libsame_ctx_init(struct libsame_gen_ctx *const LIBSAME_RESTRICT ctx,
   libsame_field_add(ctx->header_data, &ctx->header_size, header->callsign,
                     LIBSAME_CALLSIGN_LEN);
 
-  // clang-format off
+  /* clang-format off */
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_FIRST] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_SECOND] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_THIRD] =
@@ -277,7 +290,7 @@ void libsame_ctx_init(struct libsame_gen_ctx *const LIBSAME_RESTRICT ctx,
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_ATTENTION_SIGNAL] =
   header->attn_sig_duration * LIBSAME_SAMPLE_RATE;
-  // clang-format on
+  /* clang-format on */
 }
 
 void libsame_samples_gen(struct libsame_gen_ctx *const ctx) {
@@ -307,11 +320,11 @@ void libsame_samples_gen(struct libsame_gen_ctx *const ctx) {
       'N',
       'N'};
 
-  // Tried to generate a SAME header using a context for which a SAME header was
-  // already generated; bug.
+  /* Tried to generate a SAME header using a context for which a SAME header was
+   * already generated; bug.
+   */
   LIBSAME_ASSERT(ctx->seq_state < LIBSAME_SEQ_STATE_NUM);
 
-  // Generate only LIBSAME_SAMPLES_NUM_MAX samples at a time.
   for (sample_count = 0; sample_count < LIBSAME_SAMPLES_NUM_MAX;
        ++sample_count) {
     switch (ctx->seq_state) {
@@ -352,7 +365,6 @@ void libsame_samples_gen(struct libsame_gen_ctx *const ctx) {
       ctx->seq_state++;
 
       if (ctx->seq_state >= LIBSAME_SEQ_STATE_NUM) {
-        // We're done generating.
         return;
       }
     }

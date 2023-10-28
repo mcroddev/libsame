@@ -56,34 +56,36 @@ extern "C" {
   } while (0)
 
 /** This function is called when an assertion is hit.
-///
-/// Control MUST NOT be returned to the originator of an assertion!
-///
-/// @param expr The expression which failed.
-/// @param file The file where the assertion occurred.
-/// @param line_no The line number where the assertion was hit.
-/// @param userdata Application specific user data, if any.
-/// @note This function is meant to be implemented by the application developer,
-///       where it will be resolved at link time. As such, a definition does not
-///       exist in SAMEthingCore.
-*/
+ *
+ * Control MUST NOT be returned to the originator of an assertion!
+ *
+ * @param expr The expression which failed.
+ * @param file The file where the assertion occurred.
+ * @param line_no The line number where the assertion was hit.
+ * @param userdata Application specific user data, if any.
+ * @note This function is meant to be implemented by the application developer,
+ *       where it will be resolved at link time. As such, a definition does not
+ *       exist in libsame.
+ */
 void libsame_assert_failed(const char *const expr, const char *const file,
                            const int line_no, void *userdata);
 
-/// Application specific user data to pass to samething_dbg_assert_failed() if
-/// an assertion occurs.
-///
-/// @note This variable is meant to be implemented by the application developer,
-///       where it will be resolved at link time. As such, a definition does not
-///       exist in libsame.
+/**
+ * Application specific user data to pass to libsame_assert_failed() if an
+ * assertion occurs.
+ *
+ * @note This variable is meant to be implemented by the application developer,
+ *       where it will be resolved at link time. As such, a definition does not
+ *       exist in libsame.
+ */
 extern void *libsame_userdata_;
 
 #else
 #define LIBSAME_ASSERT(x)
-#endif  // NDEBUG
+#endif  /* NDEBUG */
 
 #ifdef __cplusplus
 }
-#endif  // __cplusplus
+#endif  /* __cplusplus */
 
 #endif /* LIBSAME_DEBUG_H */
