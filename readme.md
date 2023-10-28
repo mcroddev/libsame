@@ -23,9 +23,9 @@ If you are under U.S. jurisdiction, please read
 ## Features
 
 libsame was designed for a variety of targets, from low-powered embedded systems
-to your standard every day workstation. As such, it is:
+to your standard every day workstation. Features include:
 
-* Highly portable
+* High portability
   - Written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)),
     targeting the [ANSI C](https://en.wikipedia.org/wiki/ANSI_C) standard.
     - While not required, using a [GNU Compiler Collection](https://gcc.gnu.org/)
@@ -33,17 +33,17 @@ to your standard every day workstation. As such, it is:
       recommended.
     - Fully forwards compatible with C standards up to [C17](https://en.wikipedia.org/wiki/C17_(C_standard_revision)).
 
-* Multiple [AFSK](https://en.wikipedia.org/wiki/Frequency-shift_keying#Audio_frequency-shift_keying) generation engines:
+* Multiple [AFSK](https://en.wikipedia.org/wiki/Frequency-shift_keying#Audio_frequency-shift_keying) generation engines
     - [C standard library](https://en.wikipedia.org/wiki/C_standard_library) `sinf()` function. This is the default.
     - Low-order [Taylor series](https://en.wikipedia.org/wiki/Taylor_series); generally faster on modern systems.
-    - Sine wave lookup table with phase accumulator, generally faster on embedded targets.
+    - Sine wave lookup table with phase accumulator and linear interpolation, generally faster on embedded targets.
     - Application provided generator
 
   **NOTE:** Any claim regarding performance is dependent on your target system;
             we can only speak in broad generalities.
 
 
-* No dynamic memory allocation, sample generation is done in chunks.
+* No dynamic memory allocation; all sample generation is done in chunks.
 * Single-precision floating point only
 * Easy, simple configuration at compile-time via a `config.h` file.
 * Unit tested with [GoogleTest](https://github.com/google/googletest).
