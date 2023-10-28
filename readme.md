@@ -7,7 +7,7 @@ libsame is a [Specific Area Message Encoding (SAME)](https://en.wikipedia.org/wi
 **WARNING**: The author is not responsible for the misuse of this software. The
 output of this software has the potential to activate EAS decoder systems in the
 continental United States of America and its territories, along with various
-offshore marine areas, if transmitted.
+offshore marine areas.
 
 Do **not**:
 
@@ -15,7 +15,7 @@ Do **not**:
   so authorized.
 - play the output of this software in public areas.
 - use this software where life and limb are in jeopardy; it has not been
-  certified for this purpose
+  certified for this purpose.
 
 If you are under U.S. jurisdiction, please read 
 [Misuse of the Emergency Alert System (EAS) Sound](https://www.fcc.gov/enforcement/areas/misuse-eas-sound) for more information.
