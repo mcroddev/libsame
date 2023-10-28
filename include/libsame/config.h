@@ -32,8 +32,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * When generating a sine wave, use the standard sinf() function as provided by
- * the libc. This is the default.
+ * When generating a sine wave, use the standard sin(f)() function as provided
+ * by the libc. This is the default.
  */
 #define LIBSAME_CONFIG_SINE_USE_LIBC
 
@@ -69,15 +69,11 @@ extern "C" {
         defined(LIBSAME_CONFIG_SINE_USE_APP) !=   \
     1
 #error \
-    "You must define at least one, and only one of the following: LIBSAME_CONFIG_SINE_USE_LIBC, LIBSAME_CONFIG_SINE_USE_TABLE, LIBSAME_CONFIG_SINE_USE_TAYLOR, or LIBSAME_CONFIGs_SINE_USE_APP"
+    "You must define at least one, and only one of the following: LIBSAME_CONFIG_SINE_USE_LIBC, LIBSAME_CONFIG_SINE_USE_TABLE, LIBSAME_CONFIG_SINE_USE_TAYLOR, or LIBSAME_CONFIG_SINE_USE_APP"
 #endif
 
 #ifdef __cplusplus
 }
-#endif  /* __cplusplus */
+#endif /* __cplusplus */
 
 #endif /* LIBSAME_CONFIG_H */
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */

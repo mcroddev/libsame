@@ -176,7 +176,7 @@ function(libsame_build_settings_cpp_configure)
       if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         target_compile_options(libsame-build-settings-cpp INTERFACE -glldb)
       elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        target_compile_options(libsame_build-settings-cpp INTERFACE -ggdb3)
+        target_compile_options(libsame-build-settings-cpp INTERFACE -ggdb3)
       else()
         message(FATAL_ERROR
                 "Don't know what CMAKE_CXX_COMPILER_ID is, but we're in a block"
@@ -203,62 +203,14 @@ function(libsame_options_handle)
   option(LIBSAME_BUILD_BENCHMARKS "Build the benchmarks" OFF)
   option(LIBSAME_BUILD_EXAMPLES "Build the examples" OFF)
 
-  option(LIBSAME_DOWNLOAD_DEPS "Download missing dependencies" OFF)
+  option(LIBSAME_DOWNLOAD_DEPS
+         "Download missing dependencies automatically" OFF)
 
-  option(LIBSAME_WARNINGS_ARE_ERRORS "Build libsame treating warnings as errors" OFF)
+  option(LIBSAME_WARNINGS_ARE_ERRORS
+         "Build libsame treating warnings as errors" OFF)
 
   option(LIBSAME_STATIC_LIBRARY "Build libsame as a static library" OFF)
   option(LIBSAME_SHARED_LIBRARY "Build libsame as a shared library" OFF)
-endfunction()
-
-function(libsame_tests_enable)
-  include(FetchContent)
-
-  # XXX: googletest follows the Abseil Live at Head philosophy, as such
-  # regardless of LIBSAME_DOWNLOAD_DEPS being enabled or not, this is the
-  # recommended way to pull in googletest.
-  FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG main
-  )
-
-  # For Windows: Prevent overriding the parent project's compiler/linker
-  # settings.
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-  FetchContent_MakeAvailable(googletest)
-
-  include(GoogleTest)
-  enable_testing()
-endfunction()
-
-function(libsame_benchmarks_enable)
-  find_package(benchmark QUIET)
-
-  if (NOT benchmark_FOUND)
-    if (NOT LIBSAME_DOWNLOAD_DEPS)
-      message(FATAL_ERROR
-              "benchmark was not found, and downloading missing dependencies "
-              "is disabled.")
-    else()
-      include(FetchContent)
-
-      FetchContent_Declare(
-        benchmark
-        GIT_REPOSITORY https://github.com/google/benchmark.git
-        GIT_TAG v1.8.3
-      )
-
-      # Download any dependencies needed when building benchmark.
-      set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON CACHE BOOL "" FORCE)
-
-      # Do not build the unit tests.
-      set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
-
-      FetchContent_MakeAvailable(benchmark)
-    endif()
-  endif()
 endfunction()
 
 libsame_build_settings_c_configure()
@@ -268,11 +220,11 @@ if (LIBSAME_BUILD_TESTS OR LIBSAME_BUILD_BENCHMARKS)
   libsame_build_settings_cpp_configure()
 
   if (LIBSAME_BUILD_TESTS)
-    libsame_tests_enable()
+    add_subdirectory(tests)
   endif()
 
   if (LIBSAME_BUILD_BENCHMARKS)
-    libsame_benchmarks_enable()
+    add_subdirectory(benchmarks)
   endif()
 endif()
 
@@ -280,13 +232,8 @@ if (LIBSAME_ENABLE_LTO)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
 endif()
 
-# Build the library.
 add_subdirectory(src)
 
-if (LIBSAME_TESTS_BUILD)
-  add_subdirectory(tests)
-endif()
-
-if (LIBSAME_BENCHMARKS_BUILD)
-  add_subdirectory(benchmarks)
+if (LIBSAME_BUILD_EXAMPLES)
+  add_subdirectory(examples)
 endif()

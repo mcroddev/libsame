@@ -67,8 +67,9 @@ extern "C" {
  *       where it will be resolved at link time. As such, a definition does not
  *       exist in libsame.
  */
-void libsame_assert_failed(const char *const expr, const char *const file,
-                           const int line_no, void *userdata);
+extern void libsame_assert_failed(const char *const expr,
+                                  const char *const file, const int line_no,
+                                  void *userdata);
 
 /**
  * Application specific user data to pass to libsame_assert_failed() if an
@@ -82,10 +83,10 @@ extern void *libsame_userdata_;
 
 #else
 #define LIBSAME_ASSERT(x)
-#endif  /* NDEBUG */
+#endif /* NDEBUG */
 
 #ifdef __cplusplus
 }
-#endif  /* __cplusplus */
+#endif /* __cplusplus */
 
 #endif /* LIBSAME_DEBUG_H */

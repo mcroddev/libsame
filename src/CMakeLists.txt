@@ -24,7 +24,7 @@ include(CheckSymbolExists)
 include(CheckIncludeFile)
 
 function(lib_handle NAME)
-  target_link_libraries(${NAME} PRIVATE libsame-build-settings-c)
+  target_link_libraries(${NAME} PRIVATE libsame-build-settings-c m)
   target_include_directories(${NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")

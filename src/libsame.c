@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-/** \file core.c
+/** \file libsame.c
  * Defines the implementation logic of SAME header generation.
  *
  * The sample rate is fixed at 44100Hz. There appears to be no good reason to
@@ -99,7 +99,7 @@
 
 LIBSAME_STATIC float libsame_sinf(const float x) {
 #if defined(__STDC__) && defined(__STDC_VERSION__) && \
-    (__STDC_VERSION__ >= 199901L) && LIBSAME_HAVE_SINF
+    (__STDC_VERSION__ >= 199901L)
   return sinf(x);
 #else
   return (float)sin((double)x);

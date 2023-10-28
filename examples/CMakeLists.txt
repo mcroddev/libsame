@@ -20,4 +20,55 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-example_add()
+find_package(SDL2 QUIET)
+
+if (NOT ${SDL2_found})
+  if (NOT LIBSAME_DOWNLOAD_DEPS)
+    message(FATAL_ERROR
+            "SDL2 was not found, and downloading missing dependencies is "
+            "disabled.")
+  else()
+    include(FetchContent)
+
+    FetchContent_Declare(
+      SDL2
+      GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+      GIT_TAG release-2.28.4
+    )
+
+    set(SDL_STATIC ON CACHE BOOL "" FORCE)
+    set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+    set(SDL_TEST OFF CACHE BOOL "" FORCE)
+    set(SDL_ATOMIC OFF CACHE BOOL "" FORCE)
+    set(SDL_AUDIO ON CACHE BOOL "" FORCE)
+    set(SDL_VIDEO OFF CACHE BOOL "" FORCE)
+    set(SDL_RENDER OFF CACHE BOOL "" FORCE)
+    set(SDL_EVENTS ON CACHE BOOL "" FORCE)
+    set(SDL_JOYSTICK OFF CACHE BOOL "" FORCE)
+    set(SDL_HAPTIC OFF CACHE BOOL "" FORCE)
+    set(SDL_HIDAPI OFF CACHE BOOL "" FORCE)
+    set(SDL_POWER OFF CACHE BOOL "" FORCE)
+    set(SDL_TIMERS OFF CACHE BOOL "" FORCE)
+    set(SDL_FILE OFF CACHE BOOL "" FORCE)
+    set(SDL_CPUINFO OFF CACHE BOOL "" FORCE)
+    set(SDL_FILESYSTEM OFF CACHE BOOL "" FORCE)
+    set(SDL_SENSOR OFF CACHE BOOL "" FORCE)
+    set(SDL_LOCALE OFF CACHE BOOL "" FORCE)
+    set(SDL_MISC OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(SDL2)
+  endif()
+endif()
+
+function(example_add SRC NAME)
+  add_executable(${NAME} ${SRC})
+
+  target_link_libraries(${NAME} PRIVATE
+                        staticsame
+                        libsame-build-settings-c
+                        SDL2::SDL2)
+
+  target_include_directories(${NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
+endfunction()
+
+example_add(basic.c libsame_basic_example)
