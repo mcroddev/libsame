@@ -26,7 +26,7 @@ libsame was designed for a variety of targets, from low-powered embedded systems
 to your standard every day workstation. Features include:
 
 * High portability
-  - Written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)),
+  - The core is written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)),
     targeting the [ANSI C](https://en.wikipedia.org/wiki/ANSI_C) standard.
     - While not required, using a [GNU Compiler Collection](https://gcc.gnu.org/)
       or [Clang/LLVM](https://clang.llvm.org/) based compiler is highly
@@ -46,5 +46,7 @@ to your standard every day workstation. Features include:
 * No dynamic memory allocation; all sample generation is done in chunks.
 * Single-precision floating point only
 * Easy, simple configuration at compile-time via a `config.h` file.
+
+
 * Unit tested with [GoogleTest](https://github.com/google/googletest).
 * Benchmarked with [benchmark](https://github.com/google/benchmark).
