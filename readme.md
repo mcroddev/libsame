@@ -44,6 +44,7 @@ to your standard every day workstation. As such, it is:
 
 
 * No dynamic memory allocation, sample generation is done in chunks.
+* Single-precision floating point only
 * Easy, simple configuration at compile-time via a `config.h` file.
 * Unit tested with [GoogleTest](https://github.com/google/googletest).
 * Benchmarked with [benchmark](https://github.com/google/benchmark).
