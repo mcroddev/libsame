@@ -25,13 +25,9 @@ If you are under U.S. jurisdiction, please read
 libsame was designed for a variety of targets, from low-powered embedded systems
 to your standard every day workstation. Features include:
 
-* High portability
-  - The core is written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)),
-    targeting the [ANSI C](https://en.wikipedia.org/wiki/ANSI_C) standard.
-    - While not required, using a [GNU Compiler Collection](https://gcc.gnu.org/)
-      or [Clang/LLVM](https://clang.llvm.org/) based compiler is highly
-      recommended.
-    - Fully forwards compatible with C standards up to [C17](https://en.wikipedia.org/wiki/C17_(C_standard_revision)).
+* Very high portability; the core is written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language))
+  targeting the [ANSI C](https://en.wikipedia.org/wiki/ANSI_C) standard and fully forwards compatible with C
+  standards up to [C17](https://en.wikipedia.org/wiki/C17_(C_standard_revision)).
 
 * Multiple [AFSK](https://en.wikipedia.org/wiki/Frequency-shift_keying#Audio_frequency-shift_keying) generation engines
     - [C standard library](https://en.wikipedia.org/wiki/C_standard_library) `sinf()` function. This is the default.
@@ -43,10 +39,61 @@ to your standard every day workstation. Features include:
             we can only speak in broad generalities.
 
 
-* No dynamic memory allocation; all sample generation is done in chunks.
+* No dynamic memory allocation
 * Single-precision floating point only
 * Easy, simple configuration at compile-time via a `config.h` file.
 
 
 * Unit tested with [GoogleTest](https://github.com/google/googletest).
 * Benchmarked with [benchmark](https://github.com/google/benchmark).
+
+## Building
+
+You need [CMake >=3.16.3](https://cmake.org). Alternatively, you may copy the
+files from `include` and `src` and integrate them manually into your workflow
+for your specific use case.
+
+You need a C compiler that is at minimum capable of ANSI C, which should be
+basically any compiler in existence.
+
+You also need a C++ compiler that is at minimum capable of C++14 if you plan on
+building the unit tests and benchmarks.
+
+We highly recommend that you use either a [GNU Compiler Collection](https://gcc.gnu.org/) or
+[Clang/LLVM](https://clang.llvm.org/) based compiler. Nothing is stopping you from using another
+compiler, but warnings will be thrown by CMake as we don't have configurations
+for other compilers. **This does necessarily mean it will fail to compile.**
+
+CMake options:
+
+    -DLIBSAME_BUILD_EXAMPLES:BOOL=ON/OFF
+      Build the examples. This requires SDL2 which will be automatically fetched
+      by CMake if SDL2 cannot be found and LIBSAME_DOWNLOAD_DEPS is enabled.
+
+    -DLIBSAME_BUILD_TESTS:BOOL=ON/OFF
+      Build the unit tests. This requires googletest which will be automatically
+      fetched by CMake due to googletest adhering to the Abseil Live at Head
+      philosophy. This will occur regardless of the LIBSAME_DOWNLOAD_DEPS
+      setting if this option is enabled.
+
+    -DLIBSAME_BUILD_BENCHMARKS:BOOL=ON/OFF
+      Build the benchmarks. This requires benchmark which will be automatically
+      fetched by CMake if benchmark cannot be found and LIBSAME_DOWNLOAD_DEPS is
+      enabled.
+
+    -DLIBSAME_DOWNLOAD_DEPS:BOOL=ON/OFF
+      Automatically downloads missing dependencies as appropriate.
+
+    -DLIBSAME_STATIC_LIBRARY:BOOL=ON/OFF
+      Build a static library form of libsame.
+
+    -DLIBSAME_SHARED_LIBRARY:BOOL=ON/OFF
+      Build a shared library form of libsame.
+
+    -DLIBSAME_TESTS_SHARED_LIBRARY:BOOL=ON/OFF
+      If unit tests are enabled, use the shared library form of libsame when
+      linking. Otherwise, use the static library form.
+
+    -DLIBSAME_WARNINGS_ARE_ERRORS:BOOL=ON/OFF
+      Treat all compile warnings as errors. Useful only for developers and CI
+      pipelines.

@@ -62,8 +62,7 @@ function(libsame_build_settings_c_configure)
                                LIBSAME_TESTING)
   endif()
 
-  if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR
-      CMAKE_C_COMPILER_ID MATCHES "GNU")
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     # These flags can be set regardless of compiler version.
     target_compile_options(libsame-build-settings-c INTERFACE
                            -fdata-sections
@@ -77,16 +76,11 @@ function(libsame_build_settings_c_configure)
                            -Wconversion
                            -Wdisabled-optimization
                            -Wdouble-promotion
-                           -Werror
                            -Wextra
                            -Wformat=2
                            -Winline
                            -Wmissing-include-dirs
                            -Wmissing-noreturn
-                           -Wno-error=disabled-optimization
-                           -Wno-error=inline
-                           -Wno-error=padded
-                           -Wno-error=unused
                            -Wnull-dereference
                            -Wpadded
                            -Wpointer-arith
@@ -96,18 +90,22 @@ function(libsame_build_settings_c_configure)
                            -Wvla
                            -Wwrite-strings)
 
+    if (LIBSAME_WARNINGS_ARE_ERRORS)
+      target_compile_options(libsame-build-settings-c INTERFACE -Werror)
+    endif()
+
+    if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+      target_compile_options(libsame-build-settings-c INTERFACE -glldb)
+    elseif (CMAKE_C_COMPILER_ID MATCHES "GNU")
+      target_compile_options(libsame-build-settings-c INTERFACE -ggdb3)
+    else()
+      message(FATAL_ERROR
+              "Don't know what CMAKE_C_COMPILER_ID is, but we're in a block "
+              "that should guarantee that we know? ${CMAKE_C_COMPILER_ID}")
+    endif()
+
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
       target_compile_options(libsame-build-settings-c INTERFACE -O1)
-
-      if (CMAKE_C_COMPILER_ID MATCHES "Clang")
-        target_compile_options(libsame-build-settings-c INTERFACE -glldb)
-      elseif (CMAKE_C_COMPILER_ID MATCHES "GNU")
-        target_compile_options(libsame-build-settings-c INTERFACE -ggdb3)
-      else()
-        message(FATAL_ERROR
-                "Don't know what CMAKE_C_COMPILER_ID is, but we're in a block "
-                "that should guarantee that we know?")
-      endif()
     elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
       target_compile_options(libsame-build-settings-c INTERFACE -Ofast)
     else()
@@ -136,8 +134,7 @@ function(libsame_build_settings_cpp_configure)
                                LIBSAME_TESTING)
   endif()
 
-  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
-      CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     # These flags can be set regardless of compiler version.
     target_compile_options(libsame-build-settings-cpp INTERFACE
                            -fdata-sections
@@ -151,16 +148,11 @@ function(libsame_build_settings_cpp_configure)
                            -Wconversion
                            -Wdisabled-optimization
                            -Wdouble-promotion
-                           -Werror
                            -Wextra
                            -Wformat=2
                            -Winline
                            -Wmissing-include-dirs
                            -Wmissing-noreturn
-                           -Wno-error=disabled-optimization
-                           -Wno-error=inline
-                           -Wno-error=padded
-                           -Wno-error=unused
                            -Wnull-dereference
                            -Wpadded
                            -Wpointer-arith
@@ -170,20 +162,24 @@ function(libsame_build_settings_cpp_configure)
                            -Wvla
                            -Wwrite-strings)
 
+    if (LIBSAME_WARNINGS_ARE_ERRORS)
+      target_compile_options(libsame-build-settings-cpp INTERFACE -Werror)
+    endif()
+
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      target_compile_options(libsame-build-settings-cpp INTERFACE -glldb)
+    elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+      target_compile_options(libsame-build-settings-cpp INTERFACE -ggdb3)
+    else()
+      message(FATAL_ERROR
+              "Don't know what CMAKE_CXX_COMPILER_ID is, but we're in a block "
+              "that should guarantee that we know? ${CMAKE_CXX_COMPILER_ID}")
+    endif()
+
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
       target_compile_options(libsame-build-settings-cpp INTERFACE -O1)
-
-      if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_compile_options(libsame-build-settings-cpp INTERFACE -glldb)
-      elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        target_compile_options(libsame-build-settings-cpp INTERFACE -ggdb3)
-      else()
-        message(FATAL_ERROR
-                "Don't know what CMAKE_CXX_COMPILER_ID is, but we're in a block"
-                " that should guarantee that we know?")
-      endif()
     elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-      target_compile_options(libsame-build-settings-c INTERFACE -Ofast)
+      target_compile_options(libsame-build-settings-cpp INTERFACE -Ofast)
     else()
       message(WARNING
               "Unable to set project wide build settings for C++ targets: the "
@@ -213,26 +209,19 @@ function(libsame_options_handle)
   option(LIBSAME_SHARED_LIBRARY "Build libsame as a shared library" OFF)
 endfunction()
 
-libsame_build_settings_c_configure()
 libsame_options_handle()
-
-if (LIBSAME_BUILD_TESTS OR LIBSAME_BUILD_BENCHMARKS)
-  libsame_build_settings_cpp_configure()
-
-  if (LIBSAME_BUILD_TESTS)
-    add_subdirectory(tests)
-  endif()
-
-  if (LIBSAME_BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
-  endif()
-endif()
-
-if (LIBSAME_ENABLE_LTO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
-endif()
+libsame_build_settings_c_configure()
+libsame_build_settings_cpp_configure()
 
 add_subdirectory(src)
+
+if (LIBSAME_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
+
+if (LIBSAME_BUILD_BENCHMARKS)
+  add_subdirectory(benchmarks)
+endif()
 
 if (LIBSAME_BUILD_EXAMPLES)
   add_subdirectory(examples)
