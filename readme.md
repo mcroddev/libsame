@@ -69,31 +69,41 @@ CMake options:
     -DLIBSAME_BUILD_EXAMPLES:BOOL=ON/OFF
       Build the examples. This requires SDL2 which will be automatically fetched
       by CMake if SDL2 cannot be found and LIBSAME_DOWNLOAD_DEPS is enabled.
+      Default is off.
 
     -DLIBSAME_BUILD_TESTS:BOOL=ON/OFF
       Build the unit tests. This requires googletest which will be automatically
       fetched by CMake due to googletest adhering to the Abseil Live at Head
       philosophy. This will occur regardless of the LIBSAME_DOWNLOAD_DEPS
-      setting if this option is enabled.
+      setting if this option is enabled. Default is off.
 
     -DLIBSAME_BUILD_BENCHMARKS:BOOL=ON/OFF
       Build the benchmarks. This requires benchmark which will be automatically
       fetched by CMake if benchmark cannot be found and LIBSAME_DOWNLOAD_DEPS is
-      enabled.
+      enabled. Default is off.
 
     -DLIBSAME_DOWNLOAD_DEPS:BOOL=ON/OFF
-      Automatically downloads missing dependencies as appropriate.
+      Automatically downloads missing dependencies as appropriate. Default is
+      off.
 
     -DLIBSAME_STATIC_LIBRARY:BOOL=ON/OFF
-      Build a static library form of libsame.
+      Build a static library form of libsame. Default is off.
 
     -DLIBSAME_SHARED_LIBRARY:BOOL=ON/OFF
-      Build a shared library form of libsame.
+      Build a shared library form of libsame. Default is off.
 
     -DLIBSAME_TESTS_SHARED_LIBRARY:BOOL=ON/OFF
       If unit tests are enabled, use the shared library form of libsame when
-      linking. Otherwise, use the static library form.
+      linking. Otherwise, use the static library form. Default is off.
+
+    -DLIBSAME_BENCHMARKS_SHARED_LIBRARY:BOOL=ON/OFF
+      If benchmarks are enabled, use the shared library form of libsame when
+      linking. Otherwise, use the static library form. Default is off.
+
+    -DLIBSAME_EXAMPLES_SHARED_LIBRARY:BOOL=ON/OFF
+      If examples are enabled, use the shared library form of libsame when
+      linking. Otherwise, use the static library form. Default is off.
 
     -DLIBSAME_WARNINGS_ARE_ERRORS:BOOL=ON/OFF
       Treat all compile warnings as errors. Useful only for developers and CI
-      pipelines.
+      pipelines. Default is off.

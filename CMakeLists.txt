@@ -207,6 +207,16 @@ function(libsame_options_handle)
 
   option(LIBSAME_STATIC_LIBRARY "Build libsame as a static library" OFF)
   option(LIBSAME_SHARED_LIBRARY "Build libsame as a shared library" OFF)
+
+  option(LIBSAME_TESTS_SHARED_LIBRARY
+         "Use the shared library form of libsame for unit testing" OFF)
+
+  option(LIBSAME_BENCHMARKS_SHARED_LIBRARY
+         "Use the shared library form of libsame for benchmarking" OFF)
+
+  option(LIBSAME_EXAMPLES_SHARED_LIBRARY
+         "Use the shared library form of libsame for examples" OFF)
+
 endfunction()
 
 libsame_options_handle()
