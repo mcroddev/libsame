@@ -22,11 +22,9 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}
           cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
-          cd ${GITHUB_WORKSPACE}/build
-          ls -lha
 
       - name: Build project
-        run: ninja -v
+        run: ${GITHUB_WORKSPACE}/build/ninja -v
 
   release_build_with_gcc:
     name: Build release static library using gcc
@@ -46,7 +44,6 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}
           cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
-          cd build
 
       - name: Build project
-        run: ninja -v
+        run: ${GITHUB_WORKSPACE}/build/ninja -v
