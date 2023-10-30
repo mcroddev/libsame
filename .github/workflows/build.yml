@@ -53,7 +53,7 @@ jobs:
           ninja -v
 
   release_build_with_clang_shared:
-    name: Build debug shared library using clang
+    name: Build release shared library using clang
     runs-on: ubuntu-20.04
 
     steps:

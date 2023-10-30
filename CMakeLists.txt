@@ -66,7 +66,6 @@ function(libsame_build_settings_c_configure)
     target_compile_options(libsame-build-settings-c INTERFACE
                            -fdata-sections
                            -ffunction-sections
-                           -fstack-usage
                            -std=gnu90
                            -Wall
                            -Walloca
@@ -88,6 +87,12 @@ function(libsame_build_settings_c_configure)
                            -Wundef
                            -Wvla
                            -Wwrite-strings)
+
+    if ((CMAKE_C_COMPILER_ID MATCHES "Clang" AND
+        CMAKE_C_COMPILER_VERSION GREATER_EQUAL "13.0.0") OR
+        CMAKE_C_COMPILER_ID MATCHES "GNU")
+      target_compile_options(libsame-build-settings-c INTERFACE -fstack-usage)
+    endif()
 
     target_link_options(libsame-build-settings-c INTERFACE
                         -Wl,--gc-sections,--Map=libsame.map)
@@ -142,7 +147,6 @@ function(libsame_build_settings_cpp_configure)
     target_compile_options(libsame-build-settings-cpp INTERFACE
                            -fdata-sections
                            -ffunction-sections
-                           -fstack-usage
                            -std=gnu++14
                            -Wall
                            -Walloca
@@ -164,6 +168,12 @@ function(libsame_build_settings_cpp_configure)
                            -Wundef
                            -Wvla
                            -Wwrite-strings)
+
+    if ((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
+        CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL "13.0.0") OR
+        CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+      target_compile_options(libsame-build-settings-cpp INTERFACE -fstack-usage)
+    endif()
 
     target_link_options(libsame-build-settings-cpp INTERFACE
                         -Wl,--gc-sections,--Map=libsame.map)
