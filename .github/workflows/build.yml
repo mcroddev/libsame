@@ -25,7 +25,7 @@ jobs:
 
       - name: Build project
         run: |
-          cd ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}/build
           ninja -v
 
   release_build_with_gcc:
@@ -49,5 +49,5 @@ jobs:
 
       - name: Build project
         run: |
-          cd ${GITHUB_WORKSPACE}
+          cd ${GITHUB_WORKSPACE}/build
           ninja -v
