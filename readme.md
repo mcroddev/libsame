@@ -22,9 +22,6 @@ If you are under U.S. jurisdiction, please read
 
 ## Features
 
-libsame was designed for a variety of targets, from low-powered embedded systems
-to your standard every day workstation. Features include:
-
 * Very high portability; the core is written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language))
   targeting the [ANSI C](https://en.wikipedia.org/wiki/ANSI_C) standard and fully forwards compatible with C
   standards up to [C17](https://en.wikipedia.org/wiki/C17_(C_standard_revision)).
