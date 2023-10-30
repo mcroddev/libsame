@@ -1,0 +1,28 @@
+name: 'Build libsame as a static library using gcc'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Debug build
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Install build dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: build-essential ninja-build re2c cmake
+          version: 1.0
+
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Configure project
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
+          cd build
+
+      - name: Build project
+        run: ninja -v
