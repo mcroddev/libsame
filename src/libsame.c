@@ -95,7 +95,7 @@
 #include "libsame/compiler.h"
 #include "libsame/debug.h"
 
-#define LIBSAME_PI 3.141593F
+#define LIBSAME_PI 3.14159265358979323846264338327950288F
 
 LIBSAME_STATIC float libsame_sinf(const float x) {
 #ifdef LIBSAME_HAVE_SINF

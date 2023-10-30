@@ -89,6 +89,9 @@ function(libsame_build_settings_c_configure)
                            -Wvla
                            -Wwrite-strings)
 
+    target_link_options(libsame-build-settings-c INTERFACE
+                        -Wl,--gc-sections,--Map=libsame.map)
+
     if (LIBSAME_WARNINGS_ARE_ERRORS)
       target_compile_options(libsame-build-settings-c INTERFACE -Werror)
     endif()
@@ -111,6 +114,10 @@ function(libsame_build_settings_c_configure)
       target_compile_options(libsame-build-settings-c INTERFACE --coverage)
       target_link_options(libsame-build-settings-c INTERFACE --coverage)
     endif()
+
+    if (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo|Release")
+      target_compile_options(libsame-build-settings-c INTERFACE -Ofast)
+    endif()
   else()
     message(WARNING
             "Unable to set project wide build settings for C targets: the C "
@@ -131,7 +138,7 @@ function(libsame_build_settings_cpp_configure)
                                LIBSAME_TESTING)
   endif()
 
-  if (CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(libsame-build-settings-cpp INTERFACE
                            -fdata-sections
                            -ffunction-sections
@@ -158,12 +165,15 @@ function(libsame_build_settings_cpp_configure)
                            -Wvla
                            -Wwrite-strings)
 
+    target_link_options(libsame-build-settings-cpp INTERFACE
+                        -Wl,--gc-sections,--Map=libsame.map)
+
     if (LIBSAME_WARNINGS_ARE_ERRORS)
-      target_compile_options(libsame-build-settings-c INTERFACE -Werror)
+      target_compile_options(libsame-build-settings-cpp INTERFACE -Werror)
     endif()
 
     if (LIBSAME_BUILD_BENCHMARKS)
-      target_compile_options(libsame-build-settings-c INTERFACE
+      target_compile_options(libsame-build-settings-cpp INTERFACE
                              -fno-omit-frame-pointer)
     endif()
 
@@ -180,11 +190,15 @@ function(libsame_build_settings_cpp_configure)
       target_compile_options(libsame-build-settings-cpp INTERFACE --coverage)
       target_link_options(libsame-build-settings-cpp INTERFACE --coverage)
     endif()
+
+    if (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo|Release")
+      target_compile_options(libsame-build-settings-cpp INTERFACE -Ofast)
+    endif()
   else()
     message(WARNING
             "Unable to set project wide build settings for C++ targets: the C++"
-            " compiler ${CMAKE_C_COMPILER_ID} is unhandled! We may or may not "
-            "compile.")
+            " compiler ${CMAKE_CXX_COMPILER_ID} is unhandled! We may or may not"
+            " compile.")
   endif()
 endfunction()
 
