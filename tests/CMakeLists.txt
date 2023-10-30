@@ -37,4 +37,42 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
-enable_testing()
+
+if (LIBSAME_TESTS_SHARED_LIBRARY)
+  if (NOT LIBSAME_SHARED_LIBRARY)
+    message(FATAL_ERROR
+            "libsame: The unit tests were asked to be linked with the shared "
+            "library form of libsame, but the shared library form of libsame "
+            "wasn't asked to be compiled. Pass -DLIBSAME_SHARED_LIBRARY:BOOL=ON"
+            " to your CMake invocation.")
+  else()
+    set(SAME_LIB sharedsame)
+  endif()
+else()
+  if (NOT LIBSAME_STATIC_LIBRARY)
+    message(FATAL_ERROR
+            "libsame: The unit tests were asked to be linked with the static "
+            "library form of libsame, but the static library form of libsame "
+            "wasn't asked to be compiled. Pass -DLIBSAME_STATIC_LIBRARY:BOOL=ON"
+            " to your CMake invocation.")
+  else()
+    set(SAME_LIB staticsame)
+  endif()
+endif()
+
+function(libsame_test_add TEST_NAME TEST_SRC)
+  add_executable(${TEST_NAME} ${TEST_SRC})
+
+  target_link_libraries(${TEST_NAME} PRIVATE
+                        ${SAME_LIB}
+                        libsame-build-settings-cpp
+                        GTest::gtest_main)
+
+  gtest_discover_tests(${TEST_NAME})
+endfunction()
+
+libsame_test_add(libsame_afsk_gen libsame_afsk_gen.cpp)
+libsame_test_add(libsame_attn_sig_gen libsame_attn_sig_gen.cpp)
+libsame_test_add(libsame_ctx_init libsame_ctx_init.cpp)
+libsame_test_add(libsame_data libsame_data.cpp)
+libsame_test_add(libsame_field_add libsame_field_add.cpp)

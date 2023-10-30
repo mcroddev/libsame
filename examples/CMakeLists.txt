@@ -60,11 +60,33 @@ if (NOT ${SDL2_found})
   endif()
 endif()
 
+if (LIBSAME_EXAMPLES_SHARED_LIBRARY)
+  if (NOT LIBSAME_SHARED_LIBRARY)
+    message(FATAL_ERROR
+            "libsame: The examples were asked to be linked with the shared "
+            "library form of libsame, but the shared library form of libsame "
+            "wasn't asked to be compiled. Pass -DLIBSAME_SHARED_LIBRARY:BOOL=ON"
+            " to your CMake invocation.")
+  else()
+    set(SAME_LIB sharedsame)
+  endif()
+else()
+  if (NOT LIBSAME_STATIC_LIBRARY)
+    message(FATAL_ERROR
+            "libsame: The examples were asked to be linked with the static "
+            "library form of libsame, but the static library form of libsame "
+            "wasn't asked to be compiled. Pass -DLIBSAME_STATIC_LIBRARY:BOOL=ON"
+            " to your CMake invocation.")
+  else()
+    set(SAME_LIB staticsame)
+  endif()
+endif()
+
 function(example_add SRC NAME)
   add_executable(${NAME} ${SRC})
 
   target_link_libraries(${NAME} PRIVATE
-                        staticsame
+                        ${SAME_LIB}
                         libsame-build-settings-c
                         SDL2::SDL2)
 

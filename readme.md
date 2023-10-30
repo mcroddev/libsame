@@ -30,7 +30,7 @@ to your standard every day workstation. Features include:
   standards up to [C17](https://en.wikipedia.org/wiki/C17_(C_standard_revision)).
 
 * Multiple [AFSK](https://en.wikipedia.org/wiki/Frequency-shift_keying#Audio_frequency-shift_keying) generation engines
-    - [C standard library](https://en.wikipedia.org/wiki/C_standard_library) `sinf()` function. This is the default.
+    - [C standard library](https://en.wikipedia.org/wiki/C_standard_library) `sin(f)()` function. This is the default.
     - Low-order [Taylor series](https://en.wikipedia.org/wiki/Taylor_series); generally faster on modern systems.
     - Sine wave lookup table with phase accumulator and linear interpolation, generally faster on embedded targets.
     - Application provided generator
@@ -64,46 +64,75 @@ We highly recommend that you use either a [GNU Compiler Collection](https://gcc.
 compiler, but warnings will be thrown by CMake as we don't have configurations
 for other compilers. **This does necessarily mean it will fail to compile.**
 
-CMake options:
+libsame will be built as a static library by default and neither the unit tests,
+benchmarks, nor examples will be built unless you explicitly ask for them.
+
+libsame specific CMake options:
 
     -DLIBSAME_BUILD_EXAMPLES:BOOL=ON/OFF
       Build the examples. This requires SDL2 which will be automatically fetched
       by CMake if SDL2 cannot be found and LIBSAME_DOWNLOAD_DEPS is enabled.
+
       Default is off.
 
     -DLIBSAME_BUILD_TESTS:BOOL=ON/OFF
-      Build the unit tests. This requires googletest which will be automatically
-      fetched by CMake due to googletest adhering to the Abseil Live at Head
-      philosophy. This will occur regardless of the LIBSAME_DOWNLOAD_DEPS
-      setting if this option is enabled. Default is off.
+      Build the unit tests; additionally, it enables the sanitizers and code
+      coverage if supported by the compiler.
+
+      This requires GoogleTest which will be automatically fetched by CMake due
+      to GoogleTest adhering to the Abseil Live at Head philosophy. This will
+      occur regardless of the LIBSAME_DOWNLOAD_DEPS setting if this option is
+      enabled.
+
+      Default is off.
 
     -DLIBSAME_BUILD_BENCHMARKS:BOOL=ON/OFF
       Build the benchmarks. This requires benchmark which will be automatically
       fetched by CMake if benchmark cannot be found and LIBSAME_DOWNLOAD_DEPS is
-      enabled. Default is off.
+      enabled.
+
+      Default is off.
 
     -DLIBSAME_DOWNLOAD_DEPS:BOOL=ON/OFF
-      Automatically downloads missing dependencies as appropriate. Default is
-      off.
+      Automatically downloads missing dependencies as appropriate.
+
+      Default is off.
+
+    -DLIBSAME_USE_SANITIZERS:BOOL=ON/OFF
+      Turns on both ASAN and UBSan if supported by the compiler.
+
+      Default is off.
 
     -DLIBSAME_STATIC_LIBRARY:BOOL=ON/OFF
-      Build a static library form of libsame. Default is off.
+      Build a static library form of libsame.
+
+      Default is on.
 
     -DLIBSAME_SHARED_LIBRARY:BOOL=ON/OFF
-      Build a shared library form of libsame. Default is off.
+      Build a shared library form of libsame.
+
+      Default is off.
 
     -DLIBSAME_TESTS_SHARED_LIBRARY:BOOL=ON/OFF
       If unit tests are enabled, use the shared library form of libsame when
-      linking. Otherwise, use the static library form. Default is off.
+      linking. Otherwise, use the static library form.
+
+      Default is off.
 
     -DLIBSAME_BENCHMARKS_SHARED_LIBRARY:BOOL=ON/OFF
       If benchmarks are enabled, use the shared library form of libsame when
-      linking. Otherwise, use the static library form. Default is off.
+      linking. Otherwise, use the static library form.
+
+      Default is off.
 
     -DLIBSAME_EXAMPLES_SHARED_LIBRARY:BOOL=ON/OFF
       If examples are enabled, use the shared library form of libsame when
-      linking. Otherwise, use the static library form. Default is off.
+      linking. Otherwise, use the static library form.
+
+      Default is off.
 
     -DLIBSAME_WARNINGS_ARE_ERRORS:BOOL=ON/OFF
       Treat all compile warnings as errors. Useful only for developers and CI
-      pipelines. Default is off.
+      pipelines.
+
+      Default is off.

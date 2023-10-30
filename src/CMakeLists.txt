@@ -32,7 +32,8 @@ function(lib_handle NAME)
   elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set(OUTPUT_NAME "same")
   else()
-    message(FATAL_ERROR "Don't know CMAKE_BUILD_TYPE, but we should.")
+    message(WARNING
+            "Don't know the build type, cannot change output name of library.")
   endif()
 
   set_target_properties(${NAME} PROPERTIES OUTPUT_NAME ${OUTPUT_NAME})

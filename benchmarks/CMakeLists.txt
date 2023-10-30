@@ -45,3 +45,25 @@ if (NOT ${benchmark_FOUND})
     FetchContent_MakeAvailable(benchmark)
   endif()
 endif()
+
+if (LIBSAME_BENCHMARKS_SHARED_LIBRARY)
+  if (NOT LIBSAME_SHARED_LIBRARY)
+    message(FATAL_ERROR
+            "libsame: The benchmarks were asked to be linked with the shared "
+            "library form of libsame, but the shared library form of libsame "
+            "wasn't asked to be compiled. Pass -DLIBSAME_SHARED_LIBRARY:BOOL=ON"
+            " to your CMake invocation.")
+  else()
+    set(SAME_LIB sharedsame)
+  endif()
+else()
+  if (NOT LIBSAME_STATIC_LIBRARY)
+    message(FATAL_ERROR
+            "libsame: The benchmarks were asked to be linked with the static "
+            "library form of libsame, but the static library form of libsame "
+            "wasn't asked to be compiled. Pass -DLIBSAME_STATIC_LIBRARY:BOOL=ON"
+            " to your CMake invocation.")
+  else()
+    set(SAME_LIB staticsame)
+  endif()
+endif()

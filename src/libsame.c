@@ -98,8 +98,7 @@
 #define LIBSAME_PI 3.141593F
 
 LIBSAME_STATIC float libsame_sinf(const float x) {
-#if defined(__STDC__) && defined(__STDC_VERSION__) && \
-    (__STDC_VERSION__ >= 199901L)
+#ifdef LIBSAME_HAVE_SINF
   return sinf(x);
 #else
   return (float)sin((double)x);

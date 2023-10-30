@@ -63,7 +63,6 @@ function(libsame_build_settings_c_configure)
   endif()
 
   if (CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-    # These flags can be set regardless of compiler version.
     target_compile_options(libsame-build-settings-c INTERFACE
                            -fdata-sections
                            -ffunction-sections
@@ -94,30 +93,28 @@ function(libsame_build_settings_c_configure)
       target_compile_options(libsame-build-settings-c INTERFACE -Werror)
     endif()
 
-    if (CMAKE_C_COMPILER_ID MATCHES "Clang")
-      target_compile_options(libsame-build-settings-c INTERFACE -glldb)
-    elseif (CMAKE_C_COMPILER_ID MATCHES "GNU")
-      target_compile_options(libsame-build-settings-c INTERFACE -ggdb3)
-    else()
-      message(FATAL_ERROR
-              "Don't know what CMAKE_C_COMPILER_ID is, but we're in a block "
-              "that should guarantee that we know? ${CMAKE_C_COMPILER_ID}")
+    if (LIBSAME_BUILD_BENCHMARKS)
+      target_compile_options(libsame-build-settings-c INTERFACE
+                             -fno-omit-frame-pointer)
     endif()
 
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-      target_compile_options(libsame-build-settings-c INTERFACE -O1)
-    elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-      target_compile_options(libsame-build-settings-c INTERFACE -Ofast)
-    else()
-      message(WARNING
-              "Unable to set project wide build settings for C targets: the "
-              "build type ${CMAKE_BUILD_TYPE} is unhandled! libsame may not "
-              "compile.")
+    if (LIBSAME_USE_SANITIZERS)
+      target_compile_options(libsame-build-settings-c INTERFACE
+                             -fno-omit-frame-pointer
+                             -fsanitize=address,undefined)
+
+      target_link_options(libsame-build-settings-c INTERFACE
+                          -fsanitize=address,undefined)
+    endif()
+
+    if (LIBSAME_BUILD_TESTS)
+      target_compile_options(libsame-build-settings-c INTERFACE --coverage)
+      target_link_options(libsame-build-settings-c INTERFACE --coverage)
     endif()
   else()
     message(WARNING
             "Unable to set project wide build settings for C targets: the C "
-            "compiler ${CMAKE_C_COMPILER_ID} is unhandled! libsame may not "
+            "compiler ${CMAKE_C_COMPILER_ID} is unhandled! We may or may not "
             "compile.")
   endif()
 endfunction()
@@ -134,8 +131,7 @@ function(libsame_build_settings_cpp_configure)
                                LIBSAME_TESTING)
   endif()
 
-  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    # These flags can be set regardless of compiler version.
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(libsame-build-settings-cpp INTERFACE
                            -fdata-sections
                            -ffunction-sections
@@ -163,49 +159,47 @@ function(libsame_build_settings_cpp_configure)
                            -Wwrite-strings)
 
     if (LIBSAME_WARNINGS_ARE_ERRORS)
-      target_compile_options(libsame-build-settings-cpp INTERFACE -Werror)
+      target_compile_options(libsame-build-settings-c INTERFACE -Werror)
     endif()
 
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      target_compile_options(libsame-build-settings-cpp INTERFACE -glldb)
-    elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-      target_compile_options(libsame-build-settings-cpp INTERFACE -ggdb3)
-    else()
-      message(FATAL_ERROR
-              "Don't know what CMAKE_CXX_COMPILER_ID is, but we're in a block "
-              "that should guarantee that we know? ${CMAKE_CXX_COMPILER_ID}")
+    if (LIBSAME_BUILD_BENCHMARKS)
+      target_compile_options(libsame-build-settings-c INTERFACE
+                             -fno-omit-frame-pointer)
     endif()
 
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-      target_compile_options(libsame-build-settings-cpp INTERFACE -O1)
-    elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-      target_compile_options(libsame-build-settings-cpp INTERFACE -Ofast)
-    else()
-      message(WARNING
-              "Unable to set project wide build settings for C++ targets: the "
-              "build type ${CMAKE_BUILD_TYPE} is unhandled! Neither the unit "
-              "tests nor the benchmarks may compile.")
+    if (LIBSAME_USE_SANITIZERS)
+      target_compile_options(libsame-build-settings-cpp INTERFACE
+                             -fno-omit-frame-pointer
+                             -fsanitize=address,undefined)
+
+      target_link_options(libsame-build-settings-cpp INTERFACE
+                          -fsanitize=address,undefined)
+    endif()
+
+    if (LIBSAME_BUILD_TESTS)
+      target_compile_options(libsame-build-settings-cpp INTERFACE --coverage)
+      target_link_options(libsame-build-settings-cpp INTERFACE --coverage)
     endif()
   else()
     message(WARNING
             "Unable to set project wide build settings for C++ targets: the C++"
-            " compiler ${CMAKE_CXX_COMPILER_ID} is unhandled! Neither the unit "
-            "tests nor the benchmarks may compile.")
+            " compiler ${CMAKE_C_COMPILER_ID} is unhandled! We may or may not "
+            "compile.")
   endif()
 endfunction()
 
 function(libsame_options_handle)
-  option(LIBSAME_BUILD_TESTS "Build unit tests" OFF)
+  option(LIBSAME_BUILD_TESTS "Build the unit tests" OFF)
   option(LIBSAME_BUILD_BENCHMARKS "Build the benchmarks" OFF)
   option(LIBSAME_BUILD_EXAMPLES "Build the examples" OFF)
 
   option(LIBSAME_DOWNLOAD_DEPS
-         "Download missing dependencies automatically" OFF)
+         "Automatically download missing dependencies" OFF)
 
   option(LIBSAME_WARNINGS_ARE_ERRORS
          "Build libsame treating warnings as errors" OFF)
 
-  option(LIBSAME_STATIC_LIBRARY "Build libsame as a static library" OFF)
+  option(LIBSAME_STATIC_LIBRARY "Build libsame as a static library" ON)
   option(LIBSAME_SHARED_LIBRARY "Build libsame as a shared library" OFF)
 
   option(LIBSAME_TESTS_SHARED_LIBRARY
@@ -216,7 +210,6 @@ function(libsame_options_handle)
 
   option(LIBSAME_EXAMPLES_SHARED_LIBRARY
          "Use the shared library form of libsame for examples" OFF)
-
 endfunction()
 
 libsame_options_handle()
@@ -226,6 +219,7 @@ libsame_build_settings_cpp_configure()
 add_subdirectory(src)
 
 if (LIBSAME_BUILD_TESTS)
+  enable_testing()
   add_subdirectory(tests)
 endif()
 

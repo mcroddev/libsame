@@ -26,11 +26,7 @@
 
 #include "libsame/libsame.h"
 
-#define LIBSAME_TESTING
-
-#ifdef LIBSAME_TESTING
-#include "libsame/debug.h"
-
+#ifndef NDEBUG
 void *libsame_userdata_;
 
 _Noreturn void libsame_assert_failed(const char *const expr,
@@ -44,7 +40,7 @@ _Noreturn void libsame_assert_failed(const char *const expr,
   abort();
 }
 
-#endif /* LIBSAME_TESTING */
+#endif /* NDEBUG */
 
 int main(void) {
   SDL_Init(SDL_INIT_AUDIO);
