@@ -1,6 +1,6 @@
 # libsame
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build libsame](https://github.com/mcroddev/libsame/actions/workflows/build.yml/badge.svg)](https://github.com/mcroddev/libsame/actions/workflows/build.yml)
 
 libsame is a [Specific Area Message Encoding (SAME)](https://en.wikipedia.org/wiki/Specific_Area_Message_Encoding) header generator.
 
