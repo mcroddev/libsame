@@ -22,7 +22,7 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}
           cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
-          cd build
+          cd ${GITHUB_WORKSPACE}/build
 
       - name: Build project
         run: ninja -v
