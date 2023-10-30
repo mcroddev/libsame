@@ -29,7 +29,7 @@ function(lib_handle NAME)
 
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(OUTPUT_NAME "samed")
-  elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  elseif (CMAKE_BUILD_TYPE MATCHES "MinSizeRel|Release|RelWithDebInfo")
     set(OUTPUT_NAME "same")
   else()
     message(WARNING
