@@ -66,7 +66,7 @@ function(libsame_build_settings_c_configure)
     target_compile_options(libsame-build-settings-c INTERFACE
                            -fdata-sections
                            -ffunction-sections
-                           -std=gnu90
+                           -std=gnu17
                            -Wall
                            -Walloca
                            -Wcast-align
@@ -94,8 +94,8 @@ function(libsame_build_settings_c_configure)
       target_compile_options(libsame-build-settings-c INTERFACE -fstack-usage)
     endif()
 
-    target_link_options(libsame-build-settings-c INTERFACE
-                        -Wl,--gc-sections,--Map=libsame.map)
+    #target_link_options(libsame-build-settings-c INTERFACE
+    #                    -Wl,--gc-sections,--Map=libsame.map)
 
     if (LIBSAME_WARNINGS_ARE_ERRORS)
       target_compile_options(libsame-build-settings-c INTERFACE -Werror)

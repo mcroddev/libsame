@@ -47,7 +47,7 @@ set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/compiler.h
          ${PROJECT_SOURCE_DIR}/include/libsame/config.h
          ${PROJECT_SOURCE_DIR}/include/libsame/debug.h
          ${PROJECT_SOURCE_DIR}/include/libsame/libsame.h
-         ${PROJECT_SOURCE_DIR}/include/libsame/pstdint.h)
+)
 
 # XXX: While we could compile the library as object files to avoid compiling
 # twice (once for shared, once for static), this has the unfortunate

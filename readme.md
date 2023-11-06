@@ -2,7 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build libsame](https://github.com/mcroddev/libsame/actions/workflows/build.yml/badge.svg)](https://github.com/mcroddev/libsame/actions/workflows/build.yml)
 
-libsame is a [Specific Area Message Encoding (SAME)](https://en.wikipedia.org/wiki/Specific_Area_Message_Encoding) header generator.
+libsame is a [Specific Area Message Encoding (SAME)](https://en.wikipedia.org/wiki/Specific_Area_Message_Encoding) header generator
+written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language)) targeting the [C17 standard](https://en.wikipedia.org/wiki/C17_(C_standard_revision)).
 
 **WARNING**: The author is not responsible for the misuse of this software. The
 output of this software has the potential to activate EAS decoder systems in the
@@ -22,12 +23,8 @@ If you are under U.S. jurisdiction, please read
 
 ## Features
 
-* Very high portability; the core is written in the [C programming language](https://en.wikipedia.org/wiki/C_(programming_language))
-  targeting the [ANSI C](https://en.wikipedia.org/wiki/ANSI_C) standard and fully forwards compatible with C
-  standards up to [C17](https://en.wikipedia.org/wiki/C17_(C_standard_revision)).
-
 * Multiple [AFSK](https://en.wikipedia.org/wiki/Frequency-shift_keying#Audio_frequency-shift_keying) generation engines
-    - [C standard library](https://en.wikipedia.org/wiki/C_standard_library) `sin(f)()` function. This is the default.
+    - [C standard library](https://en.wikipedia.org/wiki/C_standard_library) `sinf()` function. This is the default.
     - Low-order [Taylor series](https://en.wikipedia.org/wiki/Taylor_series); generally faster on modern systems.
     - Sine wave lookup table with phase accumulator and linear interpolation, generally faster on embedded targets.
     - Application provided generator
@@ -94,6 +91,12 @@ libsame specific CMake options:
       Automatically downloads missing dependencies as appropriate.
 
       Default is off.
+
+    -DLIBSAME_ENABLE_CODE_COVERAGE:BOOL=ON/OFF
+
+     Enables code coverage support.
+
+     Default is off.
 
     -DLIBSAME_USE_SANITIZERS:BOOL=ON/OFF
       Turns on both ASAN and UBSan if supported by the compiler.
