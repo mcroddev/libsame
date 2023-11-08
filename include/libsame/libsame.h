@@ -236,7 +236,8 @@ struct libsame_gen_ctx {
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
   struct {
     int16_t entries[LIBSAME_CONFIG_SINE_LUT_SIZE];
-    uint16_t phase;
+    float attn_sig_phase_first;
+    float attn_sig_phase_second;
   } sin_gen_lut;
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
@@ -249,6 +250,10 @@ struct libsame_gen_ctx {
   struct {
     /// The current position within the data.
     size_t data_pos;
+
+#ifdef LIBSAME_CONFIG_SINE_USE_LUT
+    float phase;
+#endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
     /// The current bit we're generating a sine wave for.
     unsigned int bit_pos;

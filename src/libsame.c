@@ -89,23 +89,29 @@
 #include "libsame/compiler.h"
 #include "libsame/debug.h"
 
-#define LIBSAME_PI 3.14159265358979323846264338327950288F
+#define LIBSAME_PI (3.14159265358979323846264338327950288F)
 
 LIBSAME_STATIC int16_t libsame_sin(struct libsame_gen_ctx *const restrict ctx,
-                                   const float t, const float freq) {
+                                   float *const restrict phase, const float t,
+                                   const float freq) {
 #if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
   (void)ctx;
+  (void)phase;
   return (int16_t)(sinf(LIBSAME_PI * 2 * t * freq) * INT16_MAX);
 #elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
   (void)t;
+  LIBSAME_ASSERT(phase != NULL);
 
-  const int16_t sample = ctx->sin_gen_lut.entries[ctx->sin_gen_lut.phase];
-  const uint16_t delta =
-      (uint16_t)(((uint32_t)freq * LIBSAME_CONFIG_SINE_LUT_SIZE) /
-                 LIBSAME_SAMPLE_RATE);
+  const int16_t sample = ctx->sin_gen_lut.entries[(size_t)*phase];
 
-  ctx->sin_gen_lut.phase += delta;
-  ctx->sin_gen_lut.phase &= LIBSAME_CONFIG_SINE_LUT_SIZE - 1;
+  const float delta =
+      (freq * LIBSAME_CONFIG_SINE_LUT_SIZE) / LIBSAME_SAMPLE_RATE;
+
+  *phase += delta;
+
+  while (*phase >= LIBSAME_CONFIG_SINE_LUT_SIZE) {
+    *phase -= LIBSAME_CONFIG_SINE_LUT_SIZE;
+  }
 
   return sample;
 #elif defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
@@ -147,8 +153,17 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
                          ? LIBSAME_AFSK_MARK_FREQ
                          : LIBSAME_AFSK_SPACE_FREQ;
 
-  const float t = (float)ctx->afsk.sample_num / (float)LIBSAME_SAMPLE_RATE;
-  const int16_t sample = libsame_sin(ctx, t, freq);
+  const float t = (float)ctx->afsk.sample_num / LIBSAME_SAMPLE_RATE;
+
+#if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
+  const int16_t sample = libsame_sin(ctx, NULL, t, freq);
+#elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
+  const int16_t sample = libsame_sin(ctx, &ctx->afsk.phase, t, freq);
+#elif defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
+  ;
+#else
+#error "Unknown generation engine!"
+#endif
 
   ctx->sample_data[sample_pos] = sample;
 
@@ -164,7 +179,7 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
 
       if (ctx->afsk.data_pos >= data_size) {
         // By the time we get here, we're completely done caring about the AFSK
-        //  state for the current state; clear it to prepare for the next one.
+        // state for the current state; clear it to prepare for the next one.
         memset(&ctx->afsk, 0, sizeof(ctx->afsk));
       }
     }
@@ -183,12 +198,29 @@ LIBSAME_STATIC void libsame_attn_sig_gen(
 
   const float t = (float)ctx->attn_sig_sample_num / LIBSAME_SAMPLE_RATE;
 
-  const int16_t first_sample = libsame_sin(ctx, t, LIBSAME_ATTN_SIG_FREQ_FIRST) / sizeof(int16_t);
+#if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
+  const int32_t first_sample =
+      libsame_sin(ctx, NULL, t, LIBSAME_ATTN_SIG_FREQ_FIRST) /
+      (int32_t)sizeof(int16_t);
+  const int32_t second_sample =
+      libsame_sin(ctx, NULL, t, LIBSAME_ATTN_SIG_FREQ_SECOND) /
+      (int32_t)sizeof(int16_t);
+#elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
+  const int32_t first_sample =
+      libsame_sin(ctx, &ctx->sin_gen_lut.attn_sig_phase_first, t,
+                  LIBSAME_ATTN_SIG_FREQ_FIRST) /
+      (int32_t)sizeof(int16_t);
+  const int32_t second_sample =
+      libsame_sin(ctx, &ctx->sin_gen_lut.attn_sig_phase_second, t,
+                  LIBSAME_ATTN_SIG_FREQ_SECOND) /
+      (int32_t)sizeof(int16_t);
+#elif defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
+  ;
+#else
+#error "Unhandled generation engine for attention signal!"
+#endif
 
-  const int16_t second_sample =
-      libsame_sin(ctx, t, LIBSAME_ATTN_SIG_FREQ_SECOND) / sizeof(int16_t);
-
-  ctx->sample_data[sample_pos] = (first_sample + second_sample);
+  ctx->sample_data[sample_pos] = ((int16_t)(first_sample + second_sample));
 
   ctx->attn_sig_sample_num++;
 }
