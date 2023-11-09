@@ -70,6 +70,8 @@ the CMake options below:
       library build wasn't requested. Likewise, if this option is OFF, CMake
       will throw an error if a static library build wasn't requested.
 
+      This option has no effect is LIBSAME_BUILD_BENCHMARKS is OFF.
+
     -DLIBSAME_BUILD_EXAMPLES:BOOL=ON/OFF
       ON:  Build the examples. This requires SDL2 which will be automatically
            fetched by CMake if SDL2 cannot be found and LIBSAME_DOWNLOAD_DEPS is
@@ -85,6 +87,8 @@ the CMake options below:
       CMake will throw an error if, for example, this option is ON and a shared
       library build wasn't requested. Likewise, if this option is OFF, CMake
       will throw an error if a static library build wasn't requested.
+
+      This option has no effect is LIBSAME_BUILD_EXAMPLES is OFF.
 
     -DLIBSAME_BUILD_TESTS:BOOL=ON/OFF
       ON:  Build the unit tests. This requires GoogleTest which will be
@@ -103,9 +107,14 @@ the CMake options below:
       library build wasn't requested. Likewise, if this option is OFF, CMake
       will throw an error if a static library build wasn't requested.
 
+      This option has no effect is LIBSAME_BUILD_TESTS is OFF.
+
     -DLIBSAME_DOWNLOAD_MISSING_DEPS:BOOL=ON/OFF
       ON:  Automatically downloads missing dependencies as appropriate.
       OFF: Do not download any missing dependencies.
+
+      This option has no effect if both LIBSAME_BUILD_BENCHMARKS and
+      LIBSAME_BUILD_EXAMPLES are OFF.
 
     -DLIBSAME_ENABLE_CODE_COVERAGE:BOOL=ON/OFF
       ON:  Enables code coverage if supported by the compiler.
