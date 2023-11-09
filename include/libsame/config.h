@@ -37,11 +37,11 @@ extern "C" {
 /// accumulator and linear interpolation.
 ///
 /// Faster on most embedded systems at the cost of increased code size.
-#define LIBSAME_CONFIG_SINE_USE_LUT
+// #define LIBSAME_CONFIG_SINE_USE_LUT
 
-/// When generating a sine wave, use a low-order Taylor series approximation.
+/// When generating a sine wave, use a three-order Taylor series approximation.
 /// Faster on systems where the multiplications can be pipelined.
-// #define LIBSAME_CONFIG_SINE_USE_TAYLOR
+#define LIBSAME_CONFIG_SINE_USE_TAYLOR
 
 // When generating a sine wave, the application provides the generation.
 // #define LIBSAME_CONFIG_SINE_USE_APP
@@ -54,7 +54,7 @@ extern "C" {
 #endif
 
 #if defined(LIBSAME_CONFIG_SINE_USE_LIBC) +       \
-        defined(LIBSAME_CONFIG_SINE_USE_LUT) +  \
+        defined(LIBSAME_CONFIG_SINE_USE_LUT) +    \
         defined(LIBSAME_CONFIG_SINE_USE_TAYLOR) + \
         defined(LIBSAME_CONFIG_SINE_USE_APP) !=   \
     1

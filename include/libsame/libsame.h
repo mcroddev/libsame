@@ -31,6 +31,7 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "config.h"
 
@@ -240,6 +241,14 @@ struct libsame_gen_ctx {
     float attn_sig_phase_second;
   } sin_gen_lut;
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
+
+#ifdef LIBSAME_CONFIG_SINE_USE_APP
+  /// The function to call when a sine wave needs to be generated.
+  int16_t (*sin_gen)(void *const userdata, const float t, const float freq);
+
+  /// Application specified userdata for the sine generation function, if any.
+  void *sin_gen_userdata;
+#endif
 
   /// The header data to generate an AFSK burst from.
   uint8_t header_data[LIBSAME_HEADER_SIZE_MAX];
