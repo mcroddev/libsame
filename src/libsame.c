@@ -91,20 +91,9 @@
 
 #define LIBSAME_PI (3.14159265358979323846264338327950288F)
 
-#ifdef LIBSAME_CONFIG_SINE_USE_TAYLOR
-LIBSAME_STATIC int libsame_fact(const int num) {
-  int fact = 1;
-
-  for (int i = 1; i <= num; ++i) {
-    fact *= i;
-  }
-  return fact;
-}
-#endif // LIBSAME_CONFIG_SINE_USE_TAYLOR
-
-LIBSAME_STATIC inline __attribute__((always_inline)) int16_t libsame_sin(struct libsame_gen_ctx *const restrict ctx,
-                                   float *const restrict phase, const float t,
-                                   const float freq) {
+LIBSAME_STATIC inline __attribute__((always_inline)) int16_t libsame_sin(
+    struct libsame_gen_ctx *const restrict ctx, float *const restrict phase,
+    const float t, const float freq) {
 #if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
   (void)ctx;
   (void)phase;
@@ -142,12 +131,17 @@ LIBSAME_STATIC inline __attribute__((always_inline)) int16_t libsame_sin(struct 
     x -= LIBSAME_PI;
   }
 
-  const float t0 = powf(x, 3) / (float)libsame_fact(3);
-  const float t1 = powf(x, 5) / (float)libsame_fact(5);
-  const float t2 = powf(x, 7) / (float)libsame_fact(7);
+  // These factorials are precalculated for the low-ordered Taylor Series.
+  const float FACT_T0 = 6.0F;     // 3
+  const float FACT_T1 = 120.0F;   // 5
+  const float FACT_T2 = 5040.0F;  // 7
 
-  const float result = (x - t0) + (t1 - t2);
-  return (int16_t)((neg ? -result : result) * INT16_MAX);
+  const float t0 = powf(x, 3) / FACT_T0;
+  const float t1 = powf(x, 5) / FACT_T1;
+  const float t2 = powf(x, 7) / FACT_T2;
+
+  const float sample = (x - t0) + (t1 - t2);
+  return (int16_t)((neg ? -sample : sample) * INT16_MAX);
 #elif defined(LIBSAME_CONFIG_SINE_USE_APP)
   (void)phase;
   return ctx->sin_gen(&ctx->sin_gen_userdata, t, freq);

@@ -23,8 +23,8 @@
 include(FetchContent)
 
 # XXX: googletest follows the Abseil Live at Head philosophy, as such
-# regardless of LIBSAME_DOWNLOAD_DEPS being enabled or not, this is the
-# recommended way to pull in googletest.
+# regardless of LIBSAME_DOWNLOAD_DEPS being ON or not, this is the recommended
+# way to pull in googletest.
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
@@ -38,23 +38,23 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
-if (LIBSAME_TESTS_SHARED_LIBRARY)
-  if (NOT LIBSAME_SHARED_LIBRARY)
+if (LIBSAME_BUILD_TESTS_WITH_SHARED_LIBRARY)
+  if (NOT LIBSAME_BUILD_SHARED_LIBRARY)
     message(FATAL_ERROR
             "libsame: The unit tests were asked to be linked with the shared "
             "library form of libsame, but the shared library form of libsame "
-            "wasn't asked to be compiled. Pass -DLIBSAME_SHARED_LIBRARY:BOOL=ON"
-            " to your CMake invocation.")
+            "wasn't asked to be compiled. Pass "
+            "-DLIBSAME_BUILD_SHARED_LIBRARY:BOOL=ON to your CMake invocation.")
   else()
     set(SAME_LIB sharedsame)
   endif()
 else()
-  if (NOT LIBSAME_STATIC_LIBRARY)
+  if (NOT LIBSAME_BUILD_STATIC_LIBRARY)
     message(FATAL_ERROR
             "libsame: The unit tests were asked to be linked with the static "
             "library form of libsame, but the static library form of libsame "
-            "wasn't asked to be compiled. Pass -DLIBSAME_STATIC_LIBRARY:BOOL=ON"
-            " to your CMake invocation.")
+            "wasn't asked to be compiled. Pass "
+            "-DLIBSAME_BUILD_STATIC_LIBRARY:BOOL=ON to your CMake invocation.")
   else()
     set(SAME_LIB staticsame)
   endif()

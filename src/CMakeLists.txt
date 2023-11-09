@@ -55,12 +55,12 @@ set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/compiler.h
 # independent code, which is unnecessary and may have a small performance
 # impact.
 
-if (LIBSAME_STATIC_LIBRARY)
-  add_library(staticsame STATIC ${SRCS} ${HDRS})
-  lib_handle(staticsame)
-endif()
-
-if (LIBSAME_SHARED_LIBRARY)
+if (LIBSAME_BUILD_SHARED_LIBRARY)
   add_library(sharedsame SHARED ${SRCS} ${HDRS})
   lib_handle(sharedsame)
+endif()
+
+if (LIBSAME_BUILD_STATIC_LIBRARY)
+  add_library(staticsame STATIC ${SRCS} ${HDRS})
+  lib_handle(staticsame)
 endif()

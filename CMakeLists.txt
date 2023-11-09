@@ -213,27 +213,29 @@ function(libsame_build_settings_cpp_configure)
 endfunction()
 
 function(libsame_options_handle)
-  option(LIBSAME_BUILD_TESTS "Build the unit tests" OFF)
   option(LIBSAME_BUILD_BENCHMARKS "Build the benchmarks" OFF)
-  option(LIBSAME_BUILD_EXAMPLES "Build the examples" OFF)
+  option(LIBSAME_BUILD_BENCHMARKS_WITH_SHARED_LIBRARY
+         "Use the shared library form of libsame for benchmarking" OFF)
 
-  option(LIBSAME_DOWNLOAD_DEPS
+  option(LIBSAME_BUILD_EXAMPLES "Build the examples" OFF)
+  option(LIBSAME_BUILD_EXAMPLES_WITH_SHARED_LIBRARY
+         "Use the shared library form of libsame for examples" OFF)
+
+  option(LIBSAME_BUILD_TESTS "Build the unit tests" OFF)
+  option(LIBSAME_BUILD_TESTS_WITH_SHARED_LIBRARY
+         "Use the shared library form of libsame for unit testing" OFF)
+
+  option(LIBSAME_DOWNLOAD_MISSING_DEPS
          "Automatically download missing dependencies" OFF)
+
+  option(LIBSAME_ENABLE_CODE_COVERAGE "Enable code coverage support" OFF)
+  option(LIBSAME_ENABLE_SANITIZERS "Enable ASAN and UBSan sanitizers" OFF)
+
+  option(LIBSAME_BUILD_SHARED_LIBRARY "Build libsame as a shared library" OFF)
+  option(LIBSAME_BUILD_STATIC_LIBRARY "Build libsame as a static library" OFF)
 
   option(LIBSAME_WARNINGS_ARE_ERRORS
          "Build libsame treating warnings as errors" OFF)
-
-  option(LIBSAME_STATIC_LIBRARY "Build libsame as a static library" ON)
-  option(LIBSAME_SHARED_LIBRARY "Build libsame as a shared library" OFF)
-
-  option(LIBSAME_TESTS_SHARED_LIBRARY
-         "Use the shared library form of libsame for unit testing" OFF)
-
-  option(LIBSAME_BENCHMARKS_SHARED_LIBRARY
-         "Use the shared library form of libsame for benchmarking" OFF)
-
-  option(LIBSAME_EXAMPLES_SHARED_LIBRARY
-         "Use the shared library form of libsame for examples" OFF)
 endfunction()
 
 libsame_options_handle()
