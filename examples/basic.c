@@ -20,11 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/// @file basic.c
-///
-/// This example demonstrates the most basic usage of libsame and how to use the
-/// API to generate a valid SAME header.
-
 #include <SDL.h>
 #include <signal.h>
 
@@ -35,16 +30,11 @@
 // This is used only for assertion handling.
 void *libsame_userdata_;
 
-/// If libsame was built in debug mode, it is required that a method of this
-/// prototype be present at link-time. Instead of directly calling `assert()`,
-/// we give applications a chance to do something with this information before
-/// aborting. For this case however, if we get here, something went terribly
-/// wrong and we should just abort.
-///
-/// @param expr The expression which failed.
-/// @param file The file where the assertion occurred.
-/// @param line_no The line number where the assertion was hit.
-/// @param userdata Application specific user data, if any.
+// If libsame was built in debug mode, it is required that a method of this
+// prototype be present at link-time. Instead of directly calling `assert()`,
+// we give applications a chance to do something with this information before
+// aborting. For this case however, if we get here, something went terribly
+// wrong, and we should just abort.
 _Noreturn void libsame_assert_failed(const char *const expr,
                                      const char *const file, const int line_no,
                                      void *userdata) {
@@ -57,13 +47,13 @@ _Noreturn void libsame_assert_failed(const char *const expr,
 
 static SDL_AudioDeviceID audio_dev_id;
 
-/// The function to call when a signal has been received.
-///
-/// @param signum The signal that was received.
+static void example_on_exit(void) {
+  SDL_CloseAudioDevice(audio_dev_id);
+  SDL_Quit();
+}
+
 static void sig_handler(const int signum) {
   if (signum == SIGINT) {
-    SDL_CloseAudioDevice(audio_dev_id);
-    SDL_Quit();
     exit(EXIT_SUCCESS);
   }
 }
@@ -112,6 +102,8 @@ int main(void) {
   // We want to handle SIGINT (i.e., Ctrl+C) so that the user may stop this
   // example at any time.
   signal(SIGINT, sig_handler);
+
+  atexit(example_on_exit);
 
   user_warning_handle();
 
@@ -183,9 +175,6 @@ int main(void) {
   // completely play the output, an estimate just is fine.
   SDL_Delay(20000);
   printf("Done!\n");
-
-  SDL_CloseAudioDevice(audio_dev_id);
-  SDL_Quit();
 
   return EXIT_SUCCESS;
 }

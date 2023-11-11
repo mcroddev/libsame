@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/// @file libsame.h
+/// Defines the API of the library, along with various structures and constants
+/// necessary to drive functionality. Generally speaking, the protocol specific
+/// constants need not be changed unless the protocol has changed.
+
 #ifndef LIBSAME_LIBSAME_H
 #define LIBSAME_LIBSAME_H
 
@@ -31,7 +36,6 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #include "config.h"
 
@@ -78,8 +82,8 @@ extern "C" {
 
 /// The maximum number of characters a header can hold.
 ///
-/// There should be no need to adjust this macro directly; adjust the values it
-/// references instead.
+/// @note Do not adjust this macro directly; adjust the values it references
+/// instead.
 #define LIBSAME_HEADER_SIZE_MAX                                                \
   (LIBSAME_PREAMBLE_NUM + LIBSAME_ASCII_ID_LEN + LIBSAME_ORIGINATOR_CODE_LEN + \
    LIBSAME_EVENT_CODE_LEN +                                                    \
@@ -95,17 +99,17 @@ extern "C" {
 /// specified in a libsame_core_header's location code array should be arranged
 /// like so:
 ///
-///  [0]: 010101
-///  [1]: 101101
-///  [2]: LIBSAME_LOCATION_CODE_END_MARKER
+///     [0]: 010101
+///     [1]: 101101
+///     [2]: LIBSAME_LOCATION_CODE_END_MARKER
 #define LIBSAME_LOCATION_CODE_END_MARKER ("SPOOKY")
 
-/// The number of audio samples per each chunk.
+/// The number of audio samples per chunk.
 #define LIBSAME_SAMPLES_NUM_MAX (4096U)
 
 /// The number of audio samples per second.
 ///
-/// This value is not defined in any specification; however, it is not
+/// This value is not defined in the protocol specification; however, it is not
 /// unreasonable to assume 44100 Hz. Testing with various decoders has not
 /// revealed any issues.
 #define LIBSAME_SAMPLE_RATE (44100U)
@@ -235,15 +239,27 @@ struct libsame_gen_ctx {
   int16_t sample_data[LIBSAME_SAMPLES_NUM_MAX];
 
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
+  /// Defines the sine wave lookup table data.
   struct {
+    /// The lookup table containing the generated sine wave samples.
     int16_t entries[LIBSAME_CONFIG_SINE_LUT_SIZE];
+
+    /// The phase accumulator for the first fundamental frequency of the
+    /// attention signal.
     float attn_sig_phase_first;
+
+    /// The phase accumulator for the second fundamental frequency of the
+    /// attention signal.
     float attn_sig_phase_second;
   } sin_gen_lut;
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
 #ifdef LIBSAME_CONFIG_SINE_USE_APP
   /// The function to call when a sine wave needs to be generated.
+  ///
+  /// @param userdata Application specific userdata, if any.
+  /// @param The time period of the sine wave.
+  /// @param The desired frequency of the sine wave.
   int16_t (*sin_gen)(void *const userdata, const float t, const float freq);
 
   /// Application specified userdata for the sine generation function, if any.
@@ -256,11 +272,13 @@ struct libsame_gen_ctx {
   /// The number of samples remaining for each generation sequence.
   unsigned int seq_samples_remaining[LIBSAME_SEQ_STATE_NUM];
 
+  /// Defines the current AFSK state.
   struct {
     /// The current position within the data.
     size_t data_pos;
 
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
+    /// The phase accumulator for AFSK bursts.
     float phase;
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
@@ -282,68 +300,30 @@ struct libsame_gen_ctx {
 };
 
 #ifdef LIBSAME_TESTING
-/** Generates an Audio Frequency Shift Keying (AFSK) burst.
- *
- * @param ctx The generation context in use, which stores the state of the
- *           generation.
- *
- * @param data The data to generate an AFSK burst from.
- * @param data_size The size of the data to generate an AFSK burst from.
- * @param num_samples The number of samples to generate.
- */
+int16_t libsame_sin(struct libsame_gen_ctx *const ctx, float *const phase,
+                    const float t, const float freq);
+
+void libsame_field_add(uint8_t *const data, size_t *data_size,
+                       const char *const field, const size_t field_len);
+
 void libsame_afsk_gen(struct libsame_gen_ctx *const ctx,
                       const uint8_t *const data, const size_t data_size,
                       const size_t sample_pos);
 
-/** Generates silence for a period of 1 second.
- *
- * @param ctx The generation context in use, which stores the state of the
- *            generation.
- * @param num_samples The number of samples to generate.
- */
 void libsame_silence_gen(struct libsame_gen_ctx *const ctx,
                          const size_t sample_pos);
 
-/** Generates the attention signal.
- *
- * @param ctx The generation context in use, which stores the state of the
- *            generation.
- * @param num_samples The number of samples to generate.
- */
 void libsame_attn_sig_gen(struct libsame_gen_ctx *const ctx,
                           const size_t sample_pos);
-
-/** Adds a field to the data.
- *
- * A field is defined as any portion of the SAME header which must be populated
- * (e.g., originator code, event code).
- *
- * @param data The data to append the field to.
- * @param data_size The new occupied space of the data.
- * @param field The field to append.
- * @param field_len The length of the field to append.
- */
-void libsame_field_add(uint8_t *const data, size_t *data_size,
-                       const char *const field, const size_t field_len);
 #endif  // LIBSAME_TESTING
 
-/// Initializes...
-void libsame_init(void);
-
-/// Configures a generation context to generate the specified header.
-///
-/// @param ctx The generation context.
-/// @param header The header data to generate a SAME header from.
 void libsame_ctx_init(struct libsame_gen_ctx *const ctx,
                       const struct libsame_header *const header);
 
-/// Generates audio samples from a Specific Area Message Encoding (SAME) header.
-///
-/// @param ctx The generation context.
 void libsame_samples_gen(struct libsame_gen_ctx *const ctx);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif  // __cplusplus
 
-#endif /* LIBSAME_LIBSAME_H */
+#endif  // LIBSAME_LIBSAME_H

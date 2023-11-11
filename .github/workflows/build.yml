@@ -21,7 +21,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
+          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_BUILD_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
 
       - name: Build project
         run: |
@@ -45,7 +45,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
+          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_BUILD_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
 
       - name: Build project
         run: |
@@ -69,7 +69,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
+          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_BUILD_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
 
       - name: Build project
         run: |
@@ -93,7 +93,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
+          CC="clang" CXX="clang++" cmake -S . -B build -G Ninja -DLIBSAME_BUILD_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
 
       - name: Build project
         run: |
@@ -117,7 +117,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          cmake -S . -B build -G Ninja -DLIBSAME_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
+          cmake -S . -B build -G Ninja -DLIBSAME_BUILD_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
 
       - name: Build project
         run: |
@@ -141,7 +141,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
+          cmake -S . -B build -G Ninja -DLIBSAME_BUILD_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Debug
 
       - name: Build project
         run: |
@@ -165,7 +165,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          cmake -S . -B build -G Ninja -DLIBSAME_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
+          cmake -S . -B build -G Ninja -DLIBSAME_BUILD_SHARED_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
 
       - name: Build project
         run: |
@@ -189,7 +189,7 @@ jobs:
       - name: Configure project
         run: |
           cd ${GITHUB_WORKSPACE}
-          cmake -S . -B build -G Ninja -DLIBSAME_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
+          cmake -S . -B build -G Ninja -DLIBSAME_BUILD_STATIC_LIBRARY:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=Release
 
       - name: Build project
         run: |

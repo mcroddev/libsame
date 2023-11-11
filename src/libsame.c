@@ -23,63 +23,60 @@
 /// @file libsame.c
 /// Defines the implementation logic of SAME header generation.
 ///
-/// The sample rate is fixed at 44100Hz. There appears to be no good reason to
-/// go above or below that value. Unfortunately, an authoritative answer is
-/// not defined in the specification. Experimentation with various different
-/// decoders has not shown any problems.
+/// * Single-precision floating point is enforced as double-precision is not
+///   necessary.
 ///
-/// Single-precision floating point is enforced; double-precision is not
-/// necessary, and many embedded systems do not feature a double precision FPU.
-///
-/// Dynamic memory allocation is forbidden; all sizes are fixed, and all the
-/// upper bounds are known at compile time.
+/// * Dynamic memory allocation is forbidden; all sizes are fixed to reasonable
+///   upper bounds.
 ///
 /// The maximum number of samples that can be generated is defined by the
-/// following premises:
+/// following:
 ///
-///    * The sample rate is 44100 Hz.
+///     - We arbitrarily define the sample rate to be 44100 Hz, since an
+///       authoritative answer is not defined in the specification. Experiments
+///       with various decoders has not revealed any issues.
 ///
-///    * There are 7 periods of silence, each lasting 1 second: 1 after each
-///      message transmission (there are 3), 1 after the attention signal, and
-///      1 after each End of Message (EOM) transmission (there are 3).
+///     - There are 7 periods of silence, each lasting 1 second: 1 after each
+///       message transmission (there are 3), 1 after the attention signal, and
+///       1 after each End of Message (EOM) transmission (there are 3).
 ///
-///    * There is a maximum of 268 bytes that can be transmitted during an AFSK
-///      burst, which occurs three times.
+///     - There are a maximum of 268 bytes that can be transmitted during an
+///       AFSK burst, which occurs three times.
 ///
-///    * The End of Message (EOM) transmission is 20 bytes, which occurs three
-///      times.
+///     - The End of Message (EOM) transmission is 20 bytes, which occurs three
+///       times.
 ///
-///    * There are a total of 6 burst transmissions; 3 for the message portion,
-///      and 3 for the EOM portion.
+///     - There are a total of 6 burst transmissions; 3 for the message portion,
+///       and 3 for the EOM portion.
 ///
-///    * The maximum amount of time an attention signal can last for is 25
-///      seconds.
+///     - The maximum amount of time an attention signal can last for is 25
+///       seconds.
 ///
-///    * The duration of each bit is 1.92ms, and we must produce 520.83 bits per
-///      second. This gives us a calculation of ((1.0 / 520.83) * 44100) which
-///      gives us a sum of 84.672539. However, the value needs to be rounded UP
-///      to 85.
+///     - The duration of each bit is 1.92ms, and we must produce 520.83 bits
+///       per second. This gives us a calculation of ((1.0 / 520.83) * 44100)
+///       which gives us a sum of 84.672539. However, the value needs to be
+///       rounded UP to 85.
 ///
-///    * There are 8 bits in a character.
+///     - There are 8 bits in a character.
 ///
-/// These axioms give us the following calculations:
+/// The maximum number of samples can therefore be derived from the following
+/// series of calculations:
 ///
-///    8 bits/char * 85 samples/bit * 268 bytes * 3 bursts = + 514,080 samples
-///    7 seconds * 44,100                                  = + 308,700 samples
-///    25 seconds * 44,100                                 = + 1,102,500 samples
-///    8 bits/char * 85 samples/bit * 20 bytes * 3 bursts  = + 40,800 samples
-///                                                          = 1,966,080 samples
-///                                                            -----------------
+///     8 bits/char * 85 samples/bit * 268 bytes * 3 bursts = 514,080
+///     7 seconds * 44100Hz                                 = 308,700
+///     25 seconds * 44100Hz                                = 1,102,500
+///     8 bits/char * 85 samples/bit * 20 bytes * 3 bursts  = 40,800
 ///
-/// Since we use a 16-bit integer type to store the sample data, the amount of
-/// space required is (2 bytes * 1,966,080 samples) = **3,932,160 bytes, or**
-/// **~4 MB.**
+///     514,080 + 308,700 + 1,102,500 + 40,800 = 1,966,080 samples
 ///
-/// It is not practical to use such a large value on the stack on most embedded
-/// targets, and even on traditional desktop systems this would still not be
-/// dangerous. Since dynamic memory allocation is forbidden, the solution is to
-/// generate chunks of audio samples and then push them to the audio device
-/// incrementally. In our case, we choose to generate 4,096 samples at a time.
+/// A 16-bit integer type is used for each sample, therefore the amount of space
+/// required is (2 bytes * 1,966,080 samples), which equals
+/// **3,932,160 bytes, or ~4 MB.**
+///
+/// Since it is not practical to use such a large value on the stack and dynamic
+/// memory allocation is forbidden, we generate chunks of audio samples and then
+/// push them to the audio device incrementally. We define 1 chunk to be 4,096
+/// samples.
 
 #include "libsame/libsame.h"
 
@@ -89,11 +86,27 @@
 #include "libsame/compiler.h"
 #include "libsame/debug.h"
 
+#ifdef LIBSAME_CONFIG_SINE_USE_TAYLOR
+#include <stdbool.h>
+#endif  // LIBSAME_CONFIG_SINE_USE_TAYLOR
+
+/// The value of PI up to 35 decimal places.
 #define LIBSAME_PI (3.14159265358979323846264338327950288F)
 
-LIBSAME_STATIC inline __attribute__((always_inline)) int16_t libsame_sin(
-    struct libsame_gen_ctx *const restrict ctx, float *const restrict phase,
-    const float t, const float freq) {
+/// Generates one sample of a sine wave.
+///
+/// This function is a wrapper around the possible generation engines that may
+/// be used.
+///
+/// @param ctx The generation context in use.
+/// @param phase The phase accumulator for the generation. This can be NULL if
+///              the generation engine in use is not the LUT.
+/// @param t The time period of the sine wave.
+/// @param freq The desired frequency of the sine wave.
+/// @returns The generated sine wave sample multiplied by INT16_MAX.
+LIBSAME_STATIC int16_t libsame_sin(struct libsame_gen_ctx *const restrict ctx,
+                                   float *const restrict phase, const float t,
+                                   const float freq) {
 #if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
   (void)ctx;
   (void)phase;
@@ -112,7 +125,6 @@ LIBSAME_STATIC inline __attribute__((always_inline)) int16_t libsame_sin(
   while (*phase >= LIBSAME_CONFIG_SINE_LUT_SIZE) {
     *phase -= LIBSAME_CONFIG_SINE_LUT_SIZE;
   }
-
   return sample;
 #elif defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
   (void)ctx;
@@ -150,6 +162,15 @@ LIBSAME_STATIC inline __attribute__((always_inline)) int16_t libsame_sin(
 #endif
 }
 
+/// Adds a field to the header data.
+///
+/// A field is defined as any portion of the SAME header which must be populated
+/// (e.g., originator code, event code).
+///
+/// @param data The data to append the field to.
+/// @param data_size The new occupied space of the data.
+/// @param field The field to append.
+/// @param field_len The length of the field to append.
 LIBSAME_STATIC void libsame_field_add(uint8_t *const restrict data,
                                       size_t *restrict data_size,
                                       const char *restrict const field,
@@ -159,8 +180,7 @@ LIBSAME_STATIC void libsame_field_add(uint8_t *const restrict data,
   LIBSAME_ASSERT(field != NULL);
   LIBSAME_ASSERT(field_len > 0);
 
-  /// XXX: LIBSAME_CALLSIGN_LEN is the largest field, if this ever changes this
-  /// must change as well.
+  // XXX: This should always be set to the largest field!
   LIBSAME_ASSERT(field_len <= LIBSAME_CALLSIGN_LEN);
 
   memcpy(&data[*data_size], field, field_len);
@@ -168,6 +188,12 @@ LIBSAME_STATIC void libsame_field_add(uint8_t *const restrict data,
   data[(*data_size)++] = '-';
 }
 
+/// Generates an Audio Frequency Shift Keying (AFSK) burst.
+///
+/// @param ctx The generation context.
+/// @param data The data to generate an AFSK burst from.
+/// @param data_size The size of the data to generate an AFSK burst from.
+/// @param sample_pos The position in the sample buffer to store the sample.
 LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
                                      const uint8_t *const restrict data,
                                      const size_t data_size,
@@ -182,15 +208,11 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
 
   const float t = (float)ctx->afsk.sample_num / LIBSAME_SAMPLE_RATE;
 
-#if defined(LIBSAME_CONFIG_SINE_USE_LIBC) || \
-    defined(LIBSAME_CONFIG_SINE_USE_APP) ||  \
-    defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
-  const int16_t sample = libsame_sin(ctx, NULL, t, freq);
-#elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
+#ifdef LIBSAME_CONFIG_SINE_USE_LUT
   const int16_t sample = libsame_sin(ctx, &ctx->afsk.phase, t, freq);
 #else
-#error "Unhandled AFSK generation engine!"
-#endif
+  const int16_t sample = libsame_sin(ctx, NULL, t, freq);
+#endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
   ctx->sample_data[sample_pos] = sample;
 
@@ -213,39 +235,43 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
   }
 }
 
+/// Generates a sample of silence.
+///
+/// To configure the length of silence, adjust LIBSAME_SILENCE_DURATION to an
+/// appropriate value.
+///
+/// @param ctx The generation context to use.
+/// @param sample_pos The position in the sample buffer to store the sample.
 LIBSAME_STATIC void libsame_silence_gen(
     struct libsame_gen_ctx *const restrict ctx, const size_t sample_pos) {
   LIBSAME_ASSERT(ctx != NULL);
   ctx->sample_data[sample_pos] = 0;
 }
 
+/// Generates the attention signal.
+///
+/// @param ctx The generation context to use.
+/// @param sample_pos The position in the sample buffer to store the sample.
 LIBSAME_STATIC void libsame_attn_sig_gen(
     struct libsame_gen_ctx *const restrict ctx, const size_t sample_pos) {
   LIBSAME_ASSERT(ctx != NULL);
 
   const float t = (float)ctx->attn_sig_sample_num / LIBSAME_SAMPLE_RATE;
 
-#if defined(LIBSAME_CONFIG_SINE_USE_LIBC) || \
-    defined(LIBSAME_CONFIG_SINE_USE_APP) ||  \
-    defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
-  const int32_t first_sample =
-      libsame_sin(ctx, NULL, t, LIBSAME_ATTN_SIG_FREQ_FIRST) /
-      (int32_t)sizeof(int16_t);
-  const int32_t second_sample =
-      libsame_sin(ctx, NULL, t, LIBSAME_ATTN_SIG_FREQ_SECOND) /
-      (int32_t)sizeof(int16_t);
-#elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
-  const int32_t first_sample =
-      libsame_sin(ctx, &ctx->sin_gen_lut.attn_sig_phase_first, t,
-                  LIBSAME_ATTN_SIG_FREQ_FIRST) /
-      (int32_t)sizeof(int16_t);
-  const int32_t second_sample =
-      libsame_sin(ctx, &ctx->sin_gen_lut.attn_sig_phase_second, t,
-                  LIBSAME_ATTN_SIG_FREQ_SECOND) /
-      (int32_t)sizeof(int16_t);
+#ifdef LIBSAME_CONFIG_SINE_USE_LUT
+  float *const phase_first = &ctx->sin_gen_lut.attn_sig_phase_first;
+  float *const phase_second = &ctx->sin_gen_lut.attn_sig_phase_second;
 #else
-#error "Unhandled attention signal generation engine!"
+  float *const phase_first = NULL;
+  float *const phase_second = NULL;
 #endif
+
+  const int32_t first_sample =
+      libsame_sin(ctx, phase_first, t, LIBSAME_ATTN_SIG_FREQ_FIRST) /
+      (int32_t)sizeof(int16_t);
+  const int32_t second_sample =
+      libsame_sin(ctx, phase_second, t, LIBSAME_ATTN_SIG_FREQ_SECOND) /
+      (int32_t)sizeof(int16_t);
 
   const int16_t sample = (int16_t)(first_sample + second_sample);
   ctx->sample_data[sample_pos] = sample;
@@ -253,6 +279,17 @@ LIBSAME_STATIC void libsame_attn_sig_gen(
   ctx->attn_sig_sample_num++;
 }
 
+/// Configures a generation context to generate the specified header.
+///
+/// This function determines how many samples are required to fully generate
+/// each step of the header and translates the header structure into the string
+/// that must be transmitted.
+///
+/// If the LUT generation engine is in use, then this function will additionally
+/// populate the LUT since it is context specific.
+///
+/// @param ctx The generation context.
+/// @param header The header data to generate a SAME header from.
 void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
                       const struct libsame_header *const restrict header) {
   LIBSAME_ASSERT(ctx != NULL);
@@ -362,7 +399,14 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
 }
 
-void libsame_samples_gen(struct libsame_gen_ctx *const ctx) {
+/// Generates the audio samples for the SAME header using the specified
+/// generation context.
+///
+/// The generation context *MUST* have been initialized by using
+/// libsame_ctx_init() before calling this function.
+///
+/// @param ctx The generation context.
+void libsame_samples_gen(struct libsame_gen_ctx *const restrict ctx) {
   LIBSAME_ASSERT(ctx != NULL);
 
   static const uint8_t LIBSAME_EOM_HEADER[LIBSAME_EOM_HEADER_SIZE] = {

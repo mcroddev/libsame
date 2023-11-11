@@ -31,7 +31,7 @@ extern "C" {
 
 /// When generating a sine wave, use the standard sinf() function as provided by
 /// the libc. This is the default.
-#define LIBSAME_CONFIG_SINE_USE_LIBC
+// #define LIBSAME_CONFIG_SINE_USE_LIBC
 
 /// When generating a sine wave, use a pre-calculated lookup table with a phase
 /// accumulator and linear interpolation.
@@ -41,7 +41,7 @@ extern "C" {
 
 /// When generating a sine wave, use a three-order Taylor series approximation.
 /// Faster on systems where the multiplications can be pipelined.
-// #define LIBSAME_CONFIG_SINE_USE_TAYLOR
+#define LIBSAME_CONFIG_SINE_USE_TAYLOR
 
 // When generating a sine wave, the application provides the generation.
 // #define LIBSAME_CONFIG_SINE_USE_APP

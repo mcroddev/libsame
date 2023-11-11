@@ -20,25 +20,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/** \file libsame_data.cpp
- *
- * These test cases verify that the data values being used are consistent with
- * the latest version of the EAS protocol as defined by 47 CFR 11.31, which is
- * located at https://preview.tinyurl.com/eas-ecfr.
- */
+/// @file libsame_data.cpp
+///
+/// These test cases verify that the data values being used are consistent with
+/// the latest version of the EAS protocol as defined by 47 CFR 11.31, which is
+/// located at https://preview.tinyurl.com/eas-ecfr.
 
 #include "gtest/gtest.h"
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-extern "C" void *libsame_userdata_ = nullptr;
+void *libsame_userdata_ = nullptr;
 
-extern "C" void libsame_assert_failed(const char *const, const char *const,
-                                      const int, void *) {
+extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
+                                                   const char *const, const int,
+                                                   void *) {
   abort();
 }
 #endif  // NDEBUG
 
+/// Ensures that the maximum header size is 268.
 TEST(libsame_data, HeaderDataMaxSizeIsCorrect) {
   EXPECT_EQ(LIBSAME_HEADER_SIZE_MAX, 268);
 }
@@ -95,42 +96,54 @@ TEST(libsame_data, EndOfMessageHeaderSizeIsCorrect) {
   EXPECT_EQ(LIBSAME_EOM_HEADER_SIZE, 20);
 }
 
+/// Ensures that the AFSK bit rate is correct.
 TEST(libsame_data, AFSKBitRateIsCorrect) {
   EXPECT_FLOAT_EQ(LIBSAME_AFSK_BIT_RATE, 520.83F);
 }
 
+/// Ensures that the AFSK mark frequency is correct per standard.
 TEST(libsame_data, AFSKMarkFreqIsCorrect) {
   EXPECT_FLOAT_EQ(LIBSAME_AFSK_MARK_FREQ, 2083.3F);
 }
 
+/// Ensures that the AFSK space frequency is correct per standard.
 TEST(libsame_data, AFSKSpaceFreqIsCorrect) {
   EXPECT_FLOAT_EQ(LIBSAME_AFSK_SPACE_FREQ, 1562.5F);
 }
 
+/// Ensures that the AFSK bit duration is correct per standard.
 TEST(libsame_data, AFSKBitDurationIsCorrect) {
   EXPECT_FLOAT_EQ(LIBSAME_AFSK_BIT_DURATION, 1.0F / LIBSAME_AFSK_BIT_RATE);
 }
 
+/// Ensures that the AFSK bits per char is correct per standard.
 TEST(libsame_data, AFSKBitsPerCharIsCorrect) {
   EXPECT_EQ(LIBSAME_AFSK_BITS_PER_CHAR, 8);
 }
 
+/// Ensures that the AFSK samples per bit is correct per standard.
 TEST(libsame_data, AFSKSamplesPerBitIsCorrect) {
   EXPECT_EQ(LIBSAME_AFSK_SAMPLES_PER_BIT, 85);
 }
 
+/// Ensures that the first fundamental frequency of the attention signal is
+/// correct.
 TEST(libsame_data, AttnSigFreqFirstIsCorrect) {
   EXPECT_FLOAT_EQ(LIBSAME_ATTN_SIG_FREQ_FIRST, 853.0F);
 }
 
+/// Ensures that the second fundamental frequency of the attention signal is
+/// correct.
 TEST(libsame_data, AttnSigFreqSecondIsCorrect) {
   EXPECT_FLOAT_EQ(LIBSAME_ATTN_SIG_FREQ_SECOND, 960.0F);
 }
 
+/// Ensures that the minimum attention signal duration is correct.
 TEST(libsame_data, AttnSigMinDurationIsCorrect) {
   EXPECT_EQ(LIBSAME_ATTN_SIG_DURATION_MIN, 8);
 }
 
+/// Ensures that the maximum attention signal duration is correct.
 TEST(libsame_data, AttnSigMaxDurationIsCorrect) {
   EXPECT_EQ(LIBSAME_ATTN_SIG_DURATION_MAX, 25);
 }

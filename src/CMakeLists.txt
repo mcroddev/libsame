@@ -56,7 +56,9 @@ set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/compiler.h
 # impact.
 
 if (LIBSAME_BUILD_SHARED_LIBRARY)
-  add_library(sharedsame SHARED ${SRCS} ${HDRS})
+  add_library(sharedsame SHARED ${SRCS} ${HDRS}
+              ../tests/libsame_sin.cpp
+              ../tests/libsame_silence_gen.cpp)
   lib_handle(sharedsame)
 endif()
 
