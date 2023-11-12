@@ -206,7 +206,7 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
                          ? LIBSAME_AFSK_MARK_FREQ
                          : LIBSAME_AFSK_SPACE_FREQ;
 
-  const float t = (float)ctx->afsk.sample_num / LIBSAME_SAMPLE_RATE;
+  const float t = (float)ctx->afsk.sample_num / (float)ctx->sample_rate;
 
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
   const int16_t sample = libsame_sin(ctx, &ctx->afsk.phase, t, freq);
@@ -218,7 +218,7 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
 
   ctx->afsk.sample_num++;
 
-  if (ctx->afsk.sample_num >= LIBSAME_AFSK_SAMPLES_PER_BIT) {
+  if (ctx->afsk.sample_num >= ctx->afsk_samples_per_bit) {
     ctx->afsk.sample_num = 0;
     ctx->afsk.bit_pos++;
 
@@ -256,7 +256,7 @@ LIBSAME_STATIC void libsame_attn_sig_gen(
     struct libsame_gen_ctx *const restrict ctx, const size_t sample_pos) {
   LIBSAME_ASSERT(ctx != NULL);
 
-  const float t = (float)ctx->attn_sig_sample_num / LIBSAME_SAMPLE_RATE;
+  const float t = (float)ctx->attn_sig_sample_num / (float)ctx->sample_rate;
 
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
   float *const phase_first = &ctx->sin_gen_lut.attn_sig_phase_first;
@@ -290,8 +290,10 @@ LIBSAME_STATIC void libsame_attn_sig_gen(
 ///
 /// @param ctx The generation context.
 /// @param header The header data to generate a SAME header from.
+/// @param sample_rate The desired sample rate.
 void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
-                      const struct libsame_header *const restrict header) {
+                      const struct libsame_header *const restrict header,
+                      const unsigned int sample_rate) {
   LIBSAME_ASSERT(ctx != NULL);
   LIBSAME_ASSERT(header != NULL);
 
@@ -334,6 +336,8 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
   memcpy(&ctx->header_data, LIBSAME_INITIAL_HEADER,
          sizeof(LIBSAME_INITIAL_HEADER));
 
+  ctx->sample_rate = sample_rate;
+
   // We want to start populating the fields after the first dash.
   ctx->header_size = LIBSAME_PREAMBLE_NUM + LIBSAME_ASCII_ID_LEN + 1;
 
@@ -361,17 +365,20 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
   libsame_field_add(ctx->header_data, &ctx->header_size, header->callsign,
                     LIBSAME_CALLSIGN_LEN);
 
+  ctx->afsk_samples_per_bit =
+      (unsigned int)roundf(LIBSAME_AFSK_BIT_DURATION * (float)ctx->sample_rate);
+
   // clang-format off
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_FIRST] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_SECOND] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_THIRD] =
-  LIBSAME_AFSK_BITS_PER_CHAR * LIBSAME_AFSK_SAMPLES_PER_BIT *
+  LIBSAME_AFSK_BITS_PER_CHAR * ctx->afsk_samples_per_bit *
   (unsigned int)ctx->header_size;
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_FIRST] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_SECOND] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_THIRD] =
-  LIBSAME_AFSK_BITS_PER_CHAR * LIBSAME_AFSK_SAMPLES_PER_BIT *
+  LIBSAME_AFSK_BITS_PER_CHAR * ctx->afsk_samples_per_bit *
   LIBSAME_EOM_HEADER_SIZE;
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_FIRST] =
@@ -381,10 +388,10 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_FIFTH] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_SIXTH] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_SEVENTH] =
-  LIBSAME_SILENCE_DURATION * LIBSAME_SAMPLE_RATE;
+  LIBSAME_SILENCE_DURATION * ctx->sample_rate;
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_ATTENTION_SIGNAL] =
-  header->attn_sig_duration * LIBSAME_SAMPLE_RATE;
+  header->attn_sig_duration * ctx->sample_rate;
   // clang-format on
 
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT

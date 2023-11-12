@@ -107,13 +107,6 @@ extern "C" {
 /// The number of audio samples per chunk.
 #define LIBSAME_SAMPLES_NUM_MAX (4096U)
 
-/// The number of audio samples per second.
-///
-/// This value is not defined in the protocol specification; however, it is not
-/// unreasonable to assume 44100 Hz. Testing with various decoders has not
-/// revealed any issues.
-#define LIBSAME_SAMPLE_RATE (44100U)
-
 /// The length of a period of silence in seconds.
 #define LIBSAME_SILENCE_DURATION (1U)
 
@@ -135,12 +128,6 @@ extern "C" {
 
 /// Space frequency is 1562.5Hz.
 #define LIBSAME_AFSK_SPACE_FREQ (1562.5F)
-
-/// How many samples should we generate for each bit during an AFSK burst?
-///
-/// **WARNING:** The result should always be rounded up!
-#define LIBSAME_AFSK_SAMPLES_PER_BIT \
-  ((unsigned int)((LIBSAME_AFSK_BIT_DURATION * LIBSAME_SAMPLE_RATE) + 0.5F))
 
 /// How many bits per character?
 #define LIBSAME_AFSK_BITS_PER_CHAR (8U)
@@ -238,6 +225,8 @@ struct libsame_gen_ctx {
   /// The buffer containing the audio samples.
   int16_t sample_data[LIBSAME_SAMPLES_NUM_MAX];
 
+  unsigned int sample_rate;
+
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
   /// Defines the sine wave lookup table data.
   struct {
@@ -289,6 +278,8 @@ struct libsame_gen_ctx {
     unsigned int sample_num;
   } afsk;
 
+  unsigned int afsk_samples_per_bit;
+
   /// The actual size of the header to care about.
   size_t header_size;
 
@@ -318,7 +309,8 @@ void libsame_attn_sig_gen(struct libsame_gen_ctx *const ctx,
 #endif  // LIBSAME_TESTING
 
 void libsame_ctx_init(struct libsame_gen_ctx *const ctx,
-                      const struct libsame_header *const header);
+                      const struct libsame_header *const header,
+                      const unsigned int sample_rate);
 
 void libsame_samples_gen(struct libsame_gen_ctx *const ctx);
 

@@ -115,7 +115,9 @@ int main(void) {
   SDL_AudioSpec audio_spec;
   SDL_zero(audio_spec);
 
-  audio_spec.freq = LIBSAME_SAMPLE_RATE;
+  const int SAMPLE_RATE = 44100;
+
+  audio_spec.freq = SAMPLE_RATE;
   audio_spec.format = AUDIO_S16LSB;
   audio_spec.channels = 1;
   audio_spec.samples = LIBSAME_SAMPLES_NUM_MAX;
@@ -150,7 +152,7 @@ int main(void) {
   // Initialize the generation context with our requested header. This will
   // calculate how many samples it will take for each state in the generation
   // and generate the appropriate samples accordingly.
-  libsame_ctx_init(&ctx, &header);
+  libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
 
   // Enable the audio device.
   SDL_PauseAudioDevice(audio_dev_id, 0);
