@@ -23,7 +23,7 @@
 find_package(benchmark QUIET)
 
 if (NOT ${benchmark_FOUND})
-  if (NOT LIBSAME_DOWNLOAD_DEPS)
+  if (NOT LIBSAME_DOWNLOAD_MISSING_DEPS)
     message(FATAL_ERROR
             "benchmark was not found, and downloading missing dependencies is "
             "disabled.")
@@ -67,3 +67,14 @@ else()
     set(SAME_LIB staticsame)
   endif()
 endif()
+
+function(benchmark_add NAME SRCS)
+  add_executable(${NAME} ${SRCS})
+
+  target_link_libraries(${NAME} PRIVATE
+                        ${SAME_LIB}
+                        libsame-build-settings-cpp
+                        benchmark::benchmark)
+endfunction()
+
+benchmark_add(libsame_benchmark_default default.cpp)
