@@ -22,11 +22,19 @@
 
 #include <benchmark/benchmark.h>
 
+#include <iostream>
+
 #include "libsame/libsame.h"
 
 static void benchmark_default_path(benchmark::State& state) {
   const struct libsame_header header = {
-      .location_codes = {"048484", "048024", LIBSAME_LOCATION_CODE_END_MARKER},
+      .location_codes = {"048484", "048024", "048484", "048024", "048484",
+                         "048024", "048484", "048024", "048484", "048024",
+                         "048484", "048024", "048484", "048024", "048484",
+                         "048024", "048484", "048024", "048484", "048024",
+                         "048484", "048024", "048484", "048024", "048484",
+                         "048024", "048484", "048024", "048484", "048024",
+                         "048484"},
       .valid_time_period = "1000",
       .originator_code = "WXR",
       .event_code = "TOR",
@@ -35,6 +43,7 @@ static void benchmark_default_path(benchmark::State& state) {
       .attn_sig_duration = 8};
 
   struct libsame_gen_ctx ctx = {};
+  std::cout << "Generation engine: " << libsame_gen_engine_desc_get() << '\n';
 
   for (auto _ : state) {
     libsame_init();
