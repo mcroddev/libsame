@@ -31,7 +31,7 @@
 void *libsame_userdata_;
 
 // If libsame was built in debug mode, it is required that a method of this
-// prototype be present at link-time. Instead of directly calling `assert()`,
+// prototype be present at link time. Instead of directly calling `assert()`,
 // we give applications a chance to do something with this information before
 // aborting. For this case however, if we get here, something went terribly
 // wrong, and we should just abort.
@@ -44,22 +44,28 @@ _Noreturn void libsame_assert_failed(const char *const expr,
           line_no);
   abort();
 }
-
 #endif  // NDEBUG
 
 static SDL_AudioDeviceID audio_dev_id;
 
+// This function is called when the application terminates via the end of main()
+// or a call to exit().
 static void example_on_exit(void) {
   SDL_CloseAudioDevice(audio_dev_id);
   SDL_Quit();
 }
 
+// This function handled signals from the operating system.
+// We use it to handle Ctrl+C (^C) input from the keyboard to terminate the
+// example.
 static void sig_handler(const int signum) {
   if (signum == SIGINT) {
     exit(EXIT_SUCCESS);
   }
 }
 
+// This function outputs the warning banner and gives the user a 10-second
+// countdown to prepare themselves for the output.
 static void user_warning_handle(void) {
   printf(
       "This example will use the default audio device as determined by SDL2 "
@@ -73,7 +79,7 @@ static void user_warning_handle(void) {
   printf(
       "also FULLY CAPABLE OF ACTIVATING EAS SYSTEMS, YOU HAVE BEEN "
       "WARNED.\n\n");
-  printf("You may end this example at any time using Ctrl+C.\n\n");
+  printf("You may end this example at any time using Ctrl+C (^C).\n\n");
 
   unsigned int count = 10;
 
@@ -130,6 +136,8 @@ int main(void) {
       .attn_sig_duration = 8    // seconds
   };
 
+  // This function must be called before using libsame. If using the LUT engine,
+  // this populates the internal sine wave lookup table.
   libsame_init();
 
   // This structure handles the generation context; since we generate

@@ -25,7 +25,9 @@
 /// necessary to drive functionality. Generally speaking, the protocol specific
 /// constants need not be changed unless the protocol has changed.
 ///
-/// **WARNING:** Changing anything here may break ABI compatibility.
+/// **WARNING:** Changing anything here may break ABI compatibility. The ABI
+/// should under no circumstances break between versions unless there is a
+/// protocol change or a serious bug at play.
 
 #ifndef LIBSAME_LIBSAME_H
 #define LIBSAME_LIBSAME_H

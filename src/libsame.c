@@ -356,9 +356,6 @@ void libsame_init(void) {
 /// each step of the header and translates the header structure into the string
 /// that must be transmitted.
 ///
-/// If the LUT generation engine is in use, then this function will additionally
-/// populate the LUT since it is context specific.
-///
 /// @param ctx The generation context.
 /// @param header The header data to generate a SAME header from.
 /// @param sample_rate The desired sample rate.
