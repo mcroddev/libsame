@@ -24,21 +24,16 @@
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-extern "C" void *libsame_userdata_ = nullptr;
+void *libsame_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,
                                                    void *) {
   std::abort();
 }
-
-TEST(libsame_ctx_init, AssertsWhenContextIsNULL) {
-  struct libsame_header header = {};
-  EXPECT_DEATH({ libsame_ctx_init(nullptr, &header, 0); }, ".*");
-}
-
-TEST(libsame_ctx_init, AssertsWhenHeaderIsNULL) {
-  struct libsame_gen_ctx ctx = {};
-  EXPECT_DEATH({ libsame_ctx_init(&ctx, nullptr, 0); }, ".*");
-}
 #endif  // NDEBUG
+
+TEST(libsame_attn_sig_freq_first_get,
+     ReturnsProtocolValidFirstFreqAttnSig) {
+  EXPECT_EQ(libsame_attn_sig_freq_first_get(), 853.0F);
+}

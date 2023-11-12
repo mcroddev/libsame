@@ -71,10 +71,42 @@ function(libsame_test_add TEST_NAME TEST_SRC)
   gtest_discover_tests(${TEST_NAME})
 endfunction()
 
+libsame_test_add(libsame_afsk_bit_duration_get
+                 libsame_afsk_bit_duration_get.cpp)
+
+libsame_test_add(libsame_afsk_bit_rate_get libsame_afsk_bit_rate_get.cpp)
+
+libsame_test_add(libsame_afsk_bits_per_char_get
+                 libsame_afsk_bits_per_char_get.cpp)
+
 libsame_test_add(libsame_afsk_gen libsame_afsk_gen.cpp)
+
+libsame_test_add(libsame_afsk_mark_freq_get libsame_afsk_mark_freq_get.cpp)
+libsame_test_add(libsame_afsk_space_freq_get libsame_afsk_space_freq_get.cpp)
+
+libsame_test_add(libsame_attn_sig_duration_max_get
+                 libsame_attn_sig_duration_max_get.cpp)
+
+libsame_test_add(libsame_attn_sig_duration_min_get
+                 libsame_attn_sig_duration_min_get.cpp)
+
+libsame_test_add(libsame_attn_sig_freq_first_get
+                 libsame_attn_sig_freq_first_get.cpp)
+
+libsame_test_add(libsame_attn_sig_freq_second_get
+                 libsame_attn_sig_freq_second_get.cpp)
+
 libsame_test_add(libsame_attn_sig_gen libsame_attn_sig_gen.cpp)
+
 libsame_test_add(libsame_ctx_init libsame_ctx_init.cpp)
+
 libsame_test_add(libsame_data libsame_data.cpp)
+
 libsame_test_add(libsame_field_add libsame_field_add.cpp)
+
+libsame_test_add(libsame_init libsame_init.cpp)
+
+libsame_test_add(libsame_silence_duration_get libsame_silence_duration_get.cpp)
 libsame_test_add(libsame_silence_gen libsame_silence_gen.cpp)
+
 libsame_test_add(libsame_sin libsame_sin.cpp)

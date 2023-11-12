@@ -24,21 +24,17 @@
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-extern "C" void *libsame_userdata_ = nullptr;
+void *libsame_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,
                                                    void *) {
   std::abort();
 }
-
-TEST(libsame_ctx_init, AssertsWhenContextIsNULL) {
-  struct libsame_header header = {};
-  EXPECT_DEATH({ libsame_ctx_init(nullptr, &header, 0); }, ".*");
-}
-
-TEST(libsame_ctx_init, AssertsWhenHeaderIsNULL) {
-  struct libsame_gen_ctx ctx = {};
-  EXPECT_DEATH({ libsame_ctx_init(&ctx, nullptr, 0); }, ".*");
-}
 #endif  // NDEBUG
+
+TEST(libsame_afsk_bit_duration_get, ReturnsProtocolValidBitDuration) {
+  // Mark and space time must be 1.92 milliseconds.
+  const float result = libsame_afsk_bit_duration_get() * 1'000;
+  EXPECT_NEAR(result, 1.92, 0.1); // 1.92ms
+}

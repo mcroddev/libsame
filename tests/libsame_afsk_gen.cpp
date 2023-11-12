@@ -24,11 +24,13 @@
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-extern "C" void *samething_dbg_userdata_ = nullptr;
+void *libsame_userdata_ = nullptr;
 
-extern "C" [[noreturn]] void samething_dbg_assert_failed(const char *const,
-                                                         const char *const,
-                                                         const int, void *) {
+extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
+                                                   const char *const, const int,
+                                                   void *) {
   std::abort();
 }
 #endif  // NDEBUG
+
+// XXX: Some cases need to be thought of here.

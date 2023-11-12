@@ -39,8 +39,6 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#define LIBSAME_PREAMBLE (0xAB)
-
 /// The number of times the preamble will appear.
 #define LIBSAME_PREAMBLE_NUM (16U)
 

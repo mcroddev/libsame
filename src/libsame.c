@@ -87,13 +87,10 @@
 #include "libsame/debug.h"
 #include "libsame_config.h"
 
-#ifdef LIBSAME_CONFIG_SINE_USE_TAYLOR
-#include <stdbool.h>
-#endif  // LIBSAME_CONFIG_SINE_USE_TAYLOR
-
 /// The value of PI up to 35 decimal places.
 #define LIBSAME_PI (3.14159265358979323846264338327950288F)
 
+#define LIBSAME_PREAMBLE (0xAB)
 #define LIBSAME_EOM_HEADER_SIZE (LIBSAME_PREAMBLE_NUM + 4)
 
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
@@ -202,7 +199,7 @@ LIBSAME_STATIC int16_t libsame_sin(struct libsame_gen_ctx *const restrict ctx,
 
   float x = LIBSAME_PI * 2 * t * freq;
 
-  bool neg = x < 0.0F;
+  int neg = x < 0.0F;
   if (neg) {
     x = -x;
   }

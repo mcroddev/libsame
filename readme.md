@@ -30,7 +30,7 @@ If you are under U.S. jurisdiction, please read
 
 * No dynamic memory allocation
 * Single-precision floating point only
-* Simple configuration at compile-time via a `config.h` file.
+* Simple configuration at compile-time via a `libsame_config.h` file.
 
 * Unit tested with [GoogleTest](https://github.com/google/googletest).
 * Benchmarked with [benchmark](https://github.com/google/benchmark).

@@ -19,3 +19,21 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+// XXX: This is not going to be tested for now. If we were to test it, we would
+// basically be writing a decoder which is currently a non-goal.
+//
+// For now, we rely on other programs (e.g., multimon-ng) to tell us if our
+// output is correct.
+
+#include "gtest/gtest.h"
+
+#ifndef NDEBUG
+void *libsame_userdata_ = nullptr;
+
+extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
+                                                   const char *const, const int,
+                                                   void *) {
+  std::abort();
+}
+#endif  // NDEBUG

@@ -31,14 +31,8 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    void *) {
   std::abort();
 }
-
-TEST(libsame_ctx_init, AssertsWhenContextIsNULL) {
-  struct libsame_header header = {};
-  EXPECT_DEATH({ libsame_ctx_init(nullptr, &header, 0); }, ".*");
-}
-
-TEST(libsame_ctx_init, AssertsWhenHeaderIsNULL) {
-  struct libsame_gen_ctx ctx = {};
-  EXPECT_DEATH({ libsame_ctx_init(&ctx, nullptr, 0); }, ".*");
-}
 #endif  // NDEBUG
+
+TEST(libsame_silence_duration_get, ReturnsProtocolValidDuration) {
+  EXPECT_EQ(libsame_silence_duration_get(), 1);
+}

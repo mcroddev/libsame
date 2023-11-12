@@ -19,3 +19,40 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+#include <cstring>
+
+#include "gtest/gtest.h"
+#include "libsame/libsame.h"
+
+#ifndef NDEBUG
+extern "C" void *libsame_userdata_ = nullptr;
+
+extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
+                                                   const char *const,
+                                                   const int, void *) {
+  std::abort();
+}
+
+TEST(libsame_silence_gen, AssertsWhenContextIsNULL) {
+  EXPECT_DEATH({ libsame_silence_gen(nullptr, 0); }, ".*");
+}
+#endif  // NDEBUG
+
+TEST(libsame_silence_gen, GeneratesFullChunkOfSilence) {
+  struct libsame_gen_ctx ctx = {};
+
+  // Fill the sample data with a constant to ensure that the data is not already
+  // 0.
+  std::memset(ctx.sample_data, 0xAB, sizeof(ctx.sample_data));
+
+  // Essentially, this just zeroes out the chunk.
+  for (size_t i = 0; i < LIBSAME_SAMPLES_NUM_MAX; ++i) {
+    libsame_silence_gen(&ctx, i);
+  }
+
+  // Check to see if the chunk is entirely 0.
+  for (size_t i = 0; i < LIBSAME_SAMPLES_NUM_MAX; ++i) {
+    EXPECT_EQ(ctx.sample_data[i], 0);
+  }
+}
