@@ -38,6 +38,8 @@ void *libsame_userdata_;
 _Noreturn void libsame_assert_failed(const char *const expr,
                                      const char *const file, const int line_no,
                                      void *userdata) {
+  (void)userdata;
+
   fprintf(stderr, "libsame: assertion '%s' failed (%s:%d)\n", expr, file,
           line_no);
   abort();
@@ -56,21 +58,6 @@ static void sig_handler(const int signum) {
   if (signum == SIGINT) {
     exit(EXIT_SUCCESS);
   }
-}
-
-static const char *generation_engine_name_get(void) {
-#if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
-  return "libc sinf()";
-#elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
-  return "Sine wave lookup table using linear interpolation and a phase "
-         "accumulator";
-#elif defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
-  return "Three-order Taylor Series";
-#elif defined(LIBSAME_CONFIG_SINE_USE_APP)
-  return "Application specified generator";
-#else
-#error "Unknown generation engine!"
-#endif
 }
 
 static void user_warning_handle(void) {
@@ -128,7 +115,7 @@ int main(void) {
     return EXIT_FAILURE;
   }
 
-  printf("Generation engine: %s\n", generation_engine_name_get());
+  printf("Generation engine: %s\n", libsame_gen_engine_desc_get());
 
   // This structure defines the contents of the SAME header.
   const struct libsame_header header = {
@@ -143,6 +130,8 @@ int main(void) {
       .attn_sig_duration = 8    // seconds
   };
 
+  libsame_init();
+
   // This structure handles the generation context; since we generate
   // LIBSAME_SAMPLES_NUM_MAX at a time, we need a way to keep track of where we
   // are during the generation process. It must *always* be zeroed out upon
@@ -150,8 +139,7 @@ int main(void) {
   struct libsame_gen_ctx ctx = {};
 
   // Initialize the generation context with our requested header. This will
-  // calculate how many samples it will take for each state in the generation
-  // and generate the appropriate samples accordingly.
+  // calculate how many samples it will take for each state in the generation.
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
 
   // Enable the audio device.

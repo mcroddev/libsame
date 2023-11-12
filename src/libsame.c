@@ -60,7 +60,7 @@
 ///     - There are 8 bits in a character.
 ///
 /// The maximum number of samples can therefore be derived from the following
-/// series of calculations:
+/// series of calculations (assuming a desired sample rate of 44100Hz):
 ///
 ///     8 bits/char * 85 samples/bit * 268 bytes * 3 bursts = 514,080
 ///     7 seconds * 44100Hz                                 = 308,700
@@ -85,6 +85,7 @@
 
 #include "libsame/compiler.h"
 #include "libsame/debug.h"
+#include "libsame_config.h"
 
 #ifdef LIBSAME_CONFIG_SINE_USE_TAYLOR
 #include <stdbool.h>
@@ -92,6 +93,75 @@
 
 /// The value of PI up to 35 decimal places.
 #define LIBSAME_PI (3.14159265358979323846264338327950288F)
+
+#define LIBSAME_EOM_HEADER_SIZE (LIBSAME_PREAMBLE_NUM + 4)
+
+#ifdef LIBSAME_CONFIG_SINE_USE_LUT
+// XXX: Don't use LIBSAME_STATIC here. This table is populated by the libc's
+// sinf() function, which is probably better tested than anything we could do.
+static int16_t sin_lut[LIBSAME_CONFIG_SINE_LUT_SIZE];
+#endif  // LIBSAME_CONFIG_SINE_USE_LUT
+
+/// Retrieves the AFSK bit rate.
+///
+/// The Preamble and EAS Codes must use Audio Frequency Shift Keying at a rate
+/// of 520.83 bits per second to transmit the codes.
+///
+/// @returns The AFSK bit rate.
+LIBSAME_STATIC float libsame_afsk_bit_rate_get(void) { return 520.83F; }
+
+/// Retrieves the duration for each bit in an AFSK burst.
+///
+/// Mark and space time must be 1.92 milliseconds.
+///
+/// @returns The duration for each bit in an AFSK burst.
+LIBSAME_STATIC float libsame_afsk_bit_duration_get(void) {
+  return 1.0F / libsame_afsk_bit_rate_get();
+}
+
+/// Retrieves the mark frequency for AFSK bursts.
+///
+/// Mark frequency is 2083.3 Hz.
+///
+/// @returns The mark frequency.
+LIBSAME_STATIC float libsame_afsk_mark_freq_get(void) { return 2083.3F; }
+
+/// Retrieves the space frequency for AFSK bursts.
+///
+/// Space frequency is 1562.5 Hz.
+///
+/// @returns The space frequency.
+LIBSAME_STATIC float libsame_afsk_space_freq_get(void) { return 1562.5F; }
+
+/// Retrieves the number of bits per character for AFSK bursts.
+///
+/// @returns The number of bits per character for AFSK bursts.
+LIBSAME_STATIC unsigned int libsame_afsk_bits_per_char_get(void) { return 8; }
+
+/// Retrieves the first fundamental frequency of the attention signal.
+///
+/// @returns The first fundamental frequency of the attention signal.
+LIBSAME_STATIC float libsame_attn_sig_freq_first_get(void) { return 853.0F; }
+
+/// Retrieves the second fundamental frequency of the attention signal.
+///
+/// @returns The second fundamental frequency of the attention signal.
+LIBSAME_STATIC float libsame_attn_sig_freq_second_get(void) { return 960.0F; }
+
+/// Retrieves the number of seconds one period of silence should be.
+///
+/// @returns The number of seconds one period of silence should be.
+LIBSAME_STATIC unsigned int libsame_silence_duration_get(void) { return 1; }
+
+/// Retrieves the minimum duration of the attention signal in seconds.
+///
+/// @returns The minimum duration of the attention signal in seconds.
+unsigned int libsame_attn_sig_duration_min_get(void) { return 8; }
+
+/// Retrieves the maximum duration of the attention signal in seconds.
+///
+/// @returns The maximum duration of the attention signal in seconds.
+unsigned int libsame_attn_sig_duration_max_get(void) { return 25; }
 
 /// Generates one sample of a sine wave.
 ///
@@ -115,10 +185,10 @@ LIBSAME_STATIC int16_t libsame_sin(struct libsame_gen_ctx *const restrict ctx,
   (void)t;
   LIBSAME_ASSERT(phase != NULL);
 
-  const int16_t sample = ctx->sin_gen_lut.entries[(size_t)*phase];
+  const int16_t sample = sin_lut[(size_t)*phase];
 
   const float delta =
-      (freq * LIBSAME_CONFIG_SINE_LUT_SIZE) / LIBSAME_SAMPLE_RATE;
+      (freq * LIBSAME_CONFIG_SINE_LUT_SIZE) / (float)ctx->sample_rate;
 
   *phase += delta;
 
@@ -203,16 +273,12 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
   LIBSAME_ASSERT(data_size > 0);
 
   const float freq = ((data[ctx->afsk.data_pos] >> ctx->afsk.bit_pos) & 1)
-                         ? LIBSAME_AFSK_MARK_FREQ
-                         : LIBSAME_AFSK_SPACE_FREQ;
+                         ? libsame_afsk_mark_freq_get()
+                         : libsame_afsk_space_freq_get();
 
   const float t = (float)ctx->afsk.sample_num / (float)ctx->sample_rate;
 
-#ifdef LIBSAME_CONFIG_SINE_USE_LUT
   const int16_t sample = libsame_sin(ctx, &ctx->afsk.phase, t, freq);
-#else
-  const int16_t sample = libsame_sin(ctx, NULL, t, freq);
-#endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
   ctx->sample_data[sample_pos] = sample;
 
@@ -222,7 +288,7 @@ LIBSAME_STATIC void libsame_afsk_gen(struct libsame_gen_ctx *const restrict ctx,
     ctx->afsk.sample_num = 0;
     ctx->afsk.bit_pos++;
 
-    if (ctx->afsk.bit_pos >= LIBSAME_AFSK_BITS_PER_CHAR) {
+    if (ctx->afsk.bit_pos >= libsame_afsk_bits_per_char_get()) {
       ctx->afsk.bit_pos = 0;
       ctx->afsk.data_pos++;
 
@@ -258,25 +324,33 @@ LIBSAME_STATIC void libsame_attn_sig_gen(
 
   const float t = (float)ctx->attn_sig_sample_num / (float)ctx->sample_rate;
 
-#ifdef LIBSAME_CONFIG_SINE_USE_LUT
-  float *const phase_first = &ctx->sin_gen_lut.attn_sig_phase_first;
-  float *const phase_second = &ctx->sin_gen_lut.attn_sig_phase_second;
-#else
-  float *const phase_first = NULL;
-  float *const phase_second = NULL;
-#endif
-
-  const int32_t first_sample =
-      libsame_sin(ctx, phase_first, t, LIBSAME_ATTN_SIG_FREQ_FIRST) /
-      (int32_t)sizeof(int16_t);
+  const int32_t first_sample = libsame_sin(ctx, &ctx->attn_sig_phase_first, t,
+                                           libsame_attn_sig_freq_first_get()) /
+                               (int32_t)sizeof(int16_t);
   const int32_t second_sample =
-      libsame_sin(ctx, phase_second, t, LIBSAME_ATTN_SIG_FREQ_SECOND) /
+      libsame_sin(ctx, &ctx->attn_sig_phase_second, t,
+                  libsame_attn_sig_freq_second_get()) /
       (int32_t)sizeof(int16_t);
 
   const int16_t sample = (int16_t)(first_sample + second_sample);
   ctx->sample_data[sample_pos] = sample;
 
   ctx->attn_sig_sample_num++;
+}
+
+/// Initializes libsame for use. This must be called before any context is
+/// created and used.
+void libsame_init(void) {
+#ifdef LIBSAME_CONFIG_SINE_USE_LUT
+  for (size_t sample_num = 0; sample_num < LIBSAME_CONFIG_SINE_LUT_SIZE;
+       ++sample_num) {
+    const float t = (float)sample_num / LIBSAME_CONFIG_SINE_LUT_SIZE;
+    const float sine = sinf(LIBSAME_PI * 2 * t);
+
+    const int16_t sample = (int16_t)(sine * INT16_MAX);
+    sin_lut[sample_num] = sample;
+  }
+#endif  // LIBSAME_CONFIG_SINE_USE_LUT
 }
 
 /// Configures a generation context to generate the specified header.
@@ -365,20 +439,20 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
   libsame_field_add(ctx->header_data, &ctx->header_size, header->callsign,
                     LIBSAME_CALLSIGN_LEN);
 
-  ctx->afsk_samples_per_bit =
-      (unsigned int)roundf(LIBSAME_AFSK_BIT_DURATION * (float)ctx->sample_rate);
+  ctx->afsk_samples_per_bit = (unsigned int)roundf(
+      libsame_afsk_bit_duration_get() * (float)ctx->sample_rate);
 
   // clang-format off
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_FIRST] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_SECOND] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_THIRD] =
-  LIBSAME_AFSK_BITS_PER_CHAR * ctx->afsk_samples_per_bit *
+  libsame_afsk_bits_per_char_get() * ctx->afsk_samples_per_bit *
   (unsigned int)ctx->header_size;
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_FIRST] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_SECOND] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_THIRD] =
-  LIBSAME_AFSK_BITS_PER_CHAR * ctx->afsk_samples_per_bit *
+  libsame_afsk_bits_per_char_get() * ctx->afsk_samples_per_bit *
   LIBSAME_EOM_HEADER_SIZE;
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_FIRST] =
@@ -388,22 +462,11 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_FIFTH] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_SIXTH] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_SILENCE_SEVENTH] =
-  LIBSAME_SILENCE_DURATION * ctx->sample_rate;
+  libsame_silence_duration_get() * ctx->sample_rate;
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_ATTENTION_SIGNAL] =
   header->attn_sig_duration * ctx->sample_rate;
   // clang-format on
-
-#ifdef LIBSAME_CONFIG_SINE_USE_LUT
-  for (size_t sample_num = 0; sample_num < LIBSAME_CONFIG_SINE_LUT_SIZE;
-       ++sample_num) {
-    const float t = (float)sample_num / LIBSAME_CONFIG_SINE_LUT_SIZE;
-    const float sine = sinf(LIBSAME_PI * 2 * t);
-
-    const int16_t sample = (int16_t)(sine * INT16_MAX);
-    ctx->sin_gen_lut.entries[sample_num] = sample;
-  }
-#endif  // LIBSAME_CONFIG_SINE_USE_LUT
 }
 
 /// Generates the audio samples for the SAME header using the specified
@@ -486,4 +549,36 @@ void libsame_samples_gen(struct libsame_gen_ctx *const restrict ctx) {
       }
     }
   }
+}
+
+enum libsame_gen_engine libsame_gen_engine_get(void) {
+#if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
+  return LIBSAME_GEN_ENGINE_LIBC;
+#elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
+  return LIBSAME_GEN_ENGINE_LUT;
+#elif defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
+  return LIBSAME_GEN_ENGINE_TAYLOR;
+#elif defined(LIBSAME_CONFIG_SINE_USE_APP)
+  return LIBSAME_GEN_ENGINE_APP;
+#else
+#error "Unknown generation engine!"
+#endif
+}
+
+/// Retrieves the full description of the generation engine in use.
+///
+/// @returns The full description of the generation engine in use.
+const char *libsame_gen_engine_desc_get(void) {
+#if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
+  return "libc sinf()";
+#elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
+  return "Sine wave lookup table using linear interpolation and phase "
+         "accumulators";
+#elif defined(LIBSAME_CONFIG_SINE_USE_TAYLOR)
+  return "Three-order Taylor Series";
+#elif defined(LIBSAME_CONFIG_SINE_USE_APP)
+  return "Application specified generator";
+#else
+#error "Unknown generation engine!"
+#endif
 }

@@ -23,9 +23,9 @@ If you are under U.S. jurisdiction, please read
 ## Features
 
 * Multiple generation engines
-  - [C standard library](https://en.wikipedia.org/wiki/C_standard_library) `sinf()` function. This is the default.
+  - [C standard library sinf() function](https://linux.die.net/man/3/sinf). This is the default.
   - Three-order [Taylor series](https://en.wikipedia.org/wiki/Taylor_series)
-  - Sine wave lookup table using linear interpolation and a phase accumulator
+  - Sine wave lookup table using linear interpolation and phase accumulators
   - Application provided generator
 
 * No dynamic memory allocation
@@ -49,15 +49,31 @@ if you plan on building the unit tests and benchmarks.
 We highly recommend that you use either a [GNU Compiler Collection](https://gcc.gnu.org/) or
 [Clang/LLVM](https://clang.llvm.org/) based compiler. Nothing is stopping you from using another
 compiler, but warnings will be thrown by CMake as we don't have configurations
-for other compilers. **This does necessarily mean it will fail to compile.**
+for other compilers. **This does not necessarily mean it will fail to compile,
+but you're on your own.**
 
-All options are `OFF` by default; you must explicitly configure the build using
-the CMake options below:
+For the most part, there are no defaults set unless stated otherwise. Generally
+speaking, you must explicitly configure libsame to your needs using the
+following CMake options below:
+
+    -DLIBSAME_GENERATION_ENGINE:STRING=TaylorSeries/LUT/libc/App
+      Specifies the generation engine to use.
+
+      libc:         Use the libc sinf() function. This is the default.
+      TaylorSeries: Use a three-order Taylor Series.
+      LUT:          Use a sine wave lookup table with linear interpolation and
+                    phase accumulators.
+      App:          Use an application provided generator.
+
+    -DLIBSAME_GENERATION_ENGINE_LUT_SIZE:STRING=1024
+      Specifies the size of the sine wave lookup table. Default is 1024 entries.
+
+      This option has no effect if LIBSAME_GENERATION_ENGINE is not "LUT".
 
     -DLIBSAME_BUILD_BENCHMARKS:BOOL=ON/OFF
-      ON:  Build the benchmarks. This requires benchmark which will be automatically
-           fetched by CMake if benchmark cannot be found and LIBSAME_DOWNLOAD_DEPS is
-           ON.
+      ON:  Build the benchmarks. This requires benchmark which will be
+           automatically fetched by CMake if benchmark cannot be found and
+           LIBSAME_DOWNLOAD_DEPS is ON.
 
       OFF: The benchmarks will not be built. benchmark will not be downloaded or
            used for any reason.

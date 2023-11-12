@@ -26,6 +26,7 @@ include(CheckIncludeFile)
 function(lib_handle NAME)
   target_link_libraries(${NAME} PRIVATE libsame-build-settings-c m)
   target_include_directories(${NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
+  target_include_directories(${NAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(OUTPUT_NAME "samed")
@@ -42,12 +43,12 @@ endfunction()
 check_symbol_exists(sinf "math.h" LIBSAME_HAVE_SINF)
 check_include_file(stdint.h _STDINT_H_)
 
+configure_file(config.h.in libsame_config.h @ONLY)
+
 set(SRCS libsame.c)
 set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/compiler.h
-         ${PROJECT_SOURCE_DIR}/include/libsame/config.h
          ${PROJECT_SOURCE_DIR}/include/libsame/debug.h
-         ${PROJECT_SOURCE_DIR}/include/libsame/libsame.h
-)
+         ${PROJECT_SOURCE_DIR}/include/libsame/libsame.h)
 
 # XXX: While we could compile the library as object files to avoid compiling
 # twice (once for shared, once for static), this has the unfortunate
@@ -56,9 +57,7 @@ set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/compiler.h
 # impact.
 
 if (LIBSAME_BUILD_SHARED_LIBRARY)
-  add_library(sharedsame SHARED ${SRCS} ${HDRS}
-              ../tests/libsame_sin.cpp
-              ../tests/libsame_silence_gen.cpp)
+  add_library(sharedsame SHARED ${SRCS} ${HDRS})
   lib_handle(sharedsame)
 endif()
 

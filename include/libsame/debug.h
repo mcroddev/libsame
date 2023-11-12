@@ -53,6 +53,7 @@ extern "C" {
   do {                                                                     \
     if (!LIBSAME_UNLIKELY((expr))) {                                       \
       libsame_assert_failed(#expr, __FILE__, __LINE__, libsame_userdata_); \
+      LIBSAME_UNREACHABLE;                                                 \
     }                                                                      \
   } while (0)
 

@@ -36,12 +36,12 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
 
 TEST(libsame_ctx_init, AssertsWhenContextIsNULL) {
   struct libsame_header header = {};
-  EXPECT_DEATH({ libsame_ctx_init(nullptr, &header); }, ".*");
+  EXPECT_DEATH({ libsame_ctx_init(nullptr, &header, 0); }, ".*");
 }
 
 TEST(libsame_ctx_init, AssertsWhenHeaderIsNULL) {
   struct libsame_gen_ctx ctx = {};
-  EXPECT_DEATH({ libsame_ctx_init(&ctx, nullptr); }, ".*");
+  EXPECT_DEATH({ libsame_ctx_init(&ctx, nullptr, 0); }, ".*");
 }
 #endif  // NDEBUG
 

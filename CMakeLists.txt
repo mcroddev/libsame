@@ -213,6 +213,9 @@ function(libsame_build_settings_cpp_configure)
 endfunction()
 
 function(libsame_options_handle)
+  set(LIBSAME_GENERATION_ENGINE "libc"
+      CACHE STRING "Specifies the generation engine to use.")
+
   option(LIBSAME_BUILD_BENCHMARKS "Build the benchmarks" OFF)
   option(LIBSAME_BUILD_BENCHMARKS_WITH_SHARED_LIBRARY
          "Use the shared library form of libsame for benchmarking" OFF)
@@ -239,6 +242,23 @@ function(libsame_options_handle)
 endfunction()
 
 libsame_options_handle()
+
+if (LIBSAME_GENERATION_ENGINE STREQUAL "libc")
+  set(LIBSAME_CONFIG_SINE_USE_LIBC ON)
+elseif (LIBSAME_GENERATION_ENGINE STREQUAL "TaylorSeries")
+  set(LIBSAME_CONFIG_SINE_USE_TAYLOR ON)
+elseif (LIBSAME_GENERATION_ENGINE STREQUAL "LUT")
+  set(LIBSAME_CONFIG_SINE_USE_LUT ON)
+  set(LIBSAME_CONFIG_SINE_LUT_SIZE 1024
+      CACHE STRING "Specifies the number of sine wave lookup table entries")
+elseif (LIBSAME_GENERATION_ENGINE STREQUAL "App")
+  set(LIBSAME_CONFIG_SINE_USE_APP ON)
+else()
+  message(FATAL_ERROR
+          "The specified generation engine ${LIBSAME_GENERATION_ENGINE} is not "
+          "valid.")
+endif()
+
 libsame_build_settings_c_configure()
 libsame_build_settings_cpp_configure()
 

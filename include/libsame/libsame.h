@@ -24,6 +24,8 @@
 /// Defines the API of the library, along with various structures and constants
 /// necessary to drive functionality. Generally speaking, the protocol specific
 /// constants need not be changed unless the protocol has changed.
+///
+/// **WARNING:** Changing anything here may break ABI compatibility.
 
 #ifndef LIBSAME_LIBSAME_H
 #define LIBSAME_LIBSAME_H
@@ -37,14 +39,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#include "config.h"
-
-/// Consecutive string of bits (sixteen bytes of AB hexadecimal [8 bit byte
-/// 1010'1011]) sent to clear the system, set AGC and set asynchronous decoder
-/// clocking cycles.
-///
-/// The preamble must be transmitted before each header and End of Message code.
-#define LIBSAME_PREAMBLE (UINT8_C(0xAB))
+#define LIBSAME_PREAMBLE (0xAB)
 
 /// The number of times the preamble will appear.
 #define LIBSAME_PREAMBLE_NUM (16U)
@@ -77,9 +72,6 @@ extern "C" {
 /// preamble or the ASCII start code.
 #define LIBSAME_FIELDS_NUM_TOTAL (6U)
 
-/// The number of bytes which compose the End of Message (EOM) transmission.
-#define LIBSAME_EOM_HEADER_SIZE (LIBSAME_PREAMBLE_NUM + 4U)
-
 /// The maximum number of characters a header can hold.
 ///
 /// @note Do not adjust this macro directly; adjust the values it references
@@ -106,37 +98,6 @@ extern "C" {
 
 /// The number of audio samples per chunk.
 #define LIBSAME_SAMPLES_NUM_MAX (4096U)
-
-/// The length of a period of silence in seconds.
-#define LIBSAME_SILENCE_DURATION (1U)
-
-/// The first fundamental frequency of the attention signal.
-#define LIBSAME_ATTN_SIG_FREQ_FIRST (853.0F)
-
-/// The second fundamental frequency of the attention signal.
-#define LIBSAME_ATTN_SIG_FREQ_SECOND (960.0F)
-
-/// The Preamble and EAS codes must use Audio Frequency Shift Keying at a rate
-/// of 520.83 bits per second to transmit the codes.
-#define LIBSAME_AFSK_BIT_RATE (520.83F)
-
-/// Mark and space time must be 1.92 milliseconds.
-#define LIBSAME_AFSK_BIT_DURATION (1.0F / LIBSAME_AFSK_BIT_RATE)
-
-/// Mark frequency is 2083.3Hz.
-#define LIBSAME_AFSK_MARK_FREQ (2083.3F)
-
-/// Space frequency is 1562.5Hz.
-#define LIBSAME_AFSK_SPACE_FREQ (1562.5F)
-
-/// How many bits per character?
-#define LIBSAME_AFSK_BITS_PER_CHAR (8U)
-
-/// The minimum number of seconds the attention signal can last for.
-#define LIBSAME_ATTN_SIG_DURATION_MIN (8U)
-
-/// The maximum number of seconds the attention signal can last for.
-#define LIBSAME_ATTN_SIG_DURATION_MAX (25U)
 
 /// Defines the generation sequence states.
 ///
@@ -190,6 +151,14 @@ enum libsame_seq_state {
   LIBSAME_SEQ_STATE_NUM
 };
 
+/// Defines the possible generation engines that are in use.
+enum libsame_gen_engine {
+  LIBSAME_GEN_ENGINE_LIBC,
+  LIBSAME_GEN_ENGINE_LUT,
+  LIBSAME_GEN_ENGINE_TAYLOR,
+  LIBSAME_GEN_ENGINE_APP
+};
+
 /// Defines the header to be used for transmission.
 struct libsame_header {
   /// Indicates the geographic areas affected by the EAS alert.
@@ -225,36 +194,6 @@ struct libsame_gen_ctx {
   /// The buffer containing the audio samples.
   int16_t sample_data[LIBSAME_SAMPLES_NUM_MAX];
 
-  unsigned int sample_rate;
-
-#ifdef LIBSAME_CONFIG_SINE_USE_LUT
-  /// Defines the sine wave lookup table data.
-  struct {
-    /// The lookup table containing the generated sine wave samples.
-    int16_t entries[LIBSAME_CONFIG_SINE_LUT_SIZE];
-
-    /// The phase accumulator for the first fundamental frequency of the
-    /// attention signal.
-    float attn_sig_phase_first;
-
-    /// The phase accumulator for the second fundamental frequency of the
-    /// attention signal.
-    float attn_sig_phase_second;
-  } sin_gen_lut;
-#endif  // LIBSAME_CONFIG_SINE_USE_LUT
-
-#ifdef LIBSAME_CONFIG_SINE_USE_APP
-  /// The function to call when a sine wave needs to be generated.
-  ///
-  /// @param userdata Application specific userdata, if any.
-  /// @param The time period of the sine wave.
-  /// @param The desired frequency of the sine wave.
-  int16_t (*sin_gen)(void *const userdata, const float t, const float freq);
-
-  /// Application specified userdata for the sine generation function, if any.
-  void *sin_gen_userdata;
-#endif
-
   /// The header data to generate an AFSK burst from.
   uint8_t header_data[LIBSAME_HEADER_SIZE_MAX];
 
@@ -266,10 +205,9 @@ struct libsame_gen_ctx {
     /// The current position within the data.
     size_t data_pos;
 
-#ifdef LIBSAME_CONFIG_SINE_USE_LUT
-    /// The phase accumulator for AFSK bursts.
+    /// The phase accumulator for AFSK bursts. This only matters if the
+    /// generation engine is the LUT and is not intended for public use.
     float phase;
-#endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
     /// The current bit we're generating a sine wave for.
     unsigned int bit_pos;
@@ -278,10 +216,39 @@ struct libsame_gen_ctx {
     unsigned int sample_num;
   } afsk;
 
-  unsigned int afsk_samples_per_bit;
+  /// The function to call when a sine wave needs to be generated.
+  ///
+  /// This only matters if the generation engine in use is the application
+  /// specified generator.
+  ///
+  /// @param userdata Application specific userdata, if any.
+  /// @param t The time period of the sine wave.
+  /// @param freq The desired frequency of the sine wave.
+  int16_t (*sin_gen)(void *const userdata, const float t, const float freq);
+
+  /// Application specified userdata for the sine generation function, if any.
+  ///
+  /// This only matters if the generation engine in use is the application
+  /// specified generator.
+  void *sin_gen_userdata;
 
   /// The actual size of the header to care about.
   size_t header_size;
+
+  /// The phase accumulator for the first fundamental frequency of the attention
+  /// signal.
+  float attn_sig_phase_first;
+
+  /// The phase accumulator for the second fundamental frequency of the
+  /// attention signal.
+  float attn_sig_phase_second;
+
+  /// The sample rate as specified by libsame_ctx_init().
+  unsigned int sample_rate;
+
+  /// The number of samples per bit as defined by the specified sample rate for
+  /// AFSK bursts.
+  unsigned int afsk_samples_per_bit;
 
   /// The current sequence of the generation.
   enum libsame_seq_state seq_state;
@@ -291,6 +258,19 @@ struct libsame_gen_ctx {
 };
 
 #ifdef LIBSAME_TESTING
+float libsame_afsk_bit_rate_get(void);
+float libsame_afsk_bit_duration_get(void);
+
+float libsame_afsk_mark_freq_get(void);
+float libsame_afsk_space_freq_get(void);
+
+unsigned int libsame_afsk_bits_per_char_get(void);
+
+float libsame_attn_sig_freq_first_get(void);
+float libsame_attn_sig_freq_second_get(void);
+
+unsigned int libsame_silence_duration_get(void);
+
 int16_t libsame_sin(struct libsame_gen_ctx *const ctx, float *const phase,
                     const float t, const float freq);
 
@@ -308,11 +288,20 @@ void libsame_attn_sig_gen(struct libsame_gen_ctx *const ctx,
                           const size_t sample_pos);
 #endif  // LIBSAME_TESTING
 
+void libsame_init(void);
+
 void libsame_ctx_init(struct libsame_gen_ctx *const ctx,
                       const struct libsame_header *const header,
                       const unsigned int sample_rate);
 
 void libsame_samples_gen(struct libsame_gen_ctx *const ctx);
+
+enum libsame_gen_engine libsame_gen_engine_get(void);
+
+const char *libsame_gen_engine_desc_get(void);
+
+unsigned int libsame_attn_sig_duration_min_get(void);
+unsigned int libsame_attn_sig_duration_max_get(void);
 
 #ifdef __cplusplus
 }
