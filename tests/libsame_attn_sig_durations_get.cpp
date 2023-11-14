@@ -24,7 +24,7 @@
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-void *libsame_userdata_ = nullptr;
+void *libsame_dbg_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,
@@ -33,6 +33,11 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
 }
 #endif  // NDEBUG
 
-TEST(libsame_afsk_mark_freq_get, ReturnsProtocolValidMarkFreq) {
-  EXPECT_FLOAT_EQ(libsame_afsk_mark_freq_get(), 2083.3F);
+TEST(libsame_attn_sig_durations_get, ValidPerProtocolSpec) {
+  unsigned int min, max;
+
+  libsame_attn_sig_durations_get(&min, &max);
+
+  EXPECT_EQ(min, 8);
+  EXPECT_EQ(max, 25);
 }

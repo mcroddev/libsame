@@ -29,7 +29,7 @@
 #include "gtest/gtest.h"
 
 #ifndef NDEBUG
-void *libsame_userdata_ = nullptr;
+void *libsame_dbg_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,

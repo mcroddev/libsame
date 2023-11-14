@@ -257,37 +257,6 @@ struct libsame_gen_ctx {
   unsigned int attn_sig_sample_num;
 };
 
-#ifdef LIBSAME_TESTING
-float libsame_afsk_bit_rate_get(void);
-float libsame_afsk_bit_duration_get(void);
-
-float libsame_afsk_mark_freq_get(void);
-float libsame_afsk_space_freq_get(void);
-
-unsigned int libsame_afsk_bits_per_char_get(void);
-
-float libsame_attn_sig_freq_first_get(void);
-float libsame_attn_sig_freq_second_get(void);
-
-unsigned int libsame_silence_duration_get(void);
-
-int16_t libsame_sin(struct libsame_gen_ctx *const ctx, float *const phase,
-                    const float t, const float freq);
-
-void libsame_field_add(uint8_t *const data, size_t *data_size,
-                       const char *const field, const size_t field_len);
-
-void libsame_afsk_gen(struct libsame_gen_ctx *const ctx,
-                      const uint8_t *const data, const size_t data_size,
-                      const size_t sample_pos);
-
-void libsame_silence_gen(struct libsame_gen_ctx *const ctx,
-                         const size_t sample_pos);
-
-void libsame_attn_sig_gen(struct libsame_gen_ctx *const ctx,
-                          const size_t sample_pos);
-#endif  // LIBSAME_TESTING
-
 void libsame_init(void);
 
 void libsame_ctx_init(struct libsame_gen_ctx *const ctx,
@@ -300,8 +269,8 @@ enum libsame_gen_engine libsame_gen_engine_get(void);
 
 const char *libsame_gen_engine_desc_get(void);
 
-unsigned int libsame_attn_sig_duration_min_get(void);
-unsigned int libsame_attn_sig_duration_max_get(void);
+void libsame_attn_sig_durations_get(unsigned int *const min,
+                                    unsigned int *const max);
 
 #ifdef __cplusplus
 }

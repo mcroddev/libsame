@@ -37,24 +37,14 @@
 extern "C" {
 #endif  // __cplusplus
 
-/// When unit tests are built, static functions become externally visible so
-/// each one can also be directly tested. Functions which are meant to be
-/// statically declared in a normal case should not use `static` directly, but
-/// rather `LIBSAME_STATIC`.
-#ifndef LIBSAME_TESTING
-#define LIBSAME_STATIC static
-#else
-#define LIBSAME_STATIC
-#endif  // LIBSAME_TESTING
-
 #ifndef NDEBUG
 /// Equivalent functionality to the assert() macro.
-#define LIBSAME_ASSERT(expr)                                               \
-  do {                                                                     \
-    if (!LIBSAME_UNLIKELY((expr))) {                                       \
-      libsame_assert_failed(#expr, __FILE__, __LINE__, libsame_userdata_); \
-      LIBSAME_UNREACHABLE;                                                 \
-    }                                                                      \
+#define LIBSAME_ASSERT(expr)                                                   \
+  do {                                                                         \
+    if (!LIBSAME_UNLIKELY((expr))) {                                           \
+      libsame_assert_failed(#expr, __FILE__, __LINE__, libsame_dbg_userdata_); \
+      LIBSAME_UNREACHABLE;                                                     \
+    }                                                                          \
   } while (0)
 
 /// This function is called when an assertion is hit.
@@ -82,7 +72,7 @@ extern void libsame_assert_failed(const char *const expr,
 /// @note This variable is meant to be implemented by the application developer,
 ///       where it will be resolved at link time. As such, a definition does not
 ///       exist in libsame.
-extern void *libsame_userdata_;
+extern void *libsame_dbg_userdata_;
 
 #else
 /// Equivalent functionality to the assert() macro.

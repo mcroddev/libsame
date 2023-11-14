@@ -24,7 +24,7 @@
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-void *libsame_userdata_ = nullptr;
+void *libsame_dbg_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,
@@ -32,9 +32,3 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
   std::abort();
 }
 #endif  // NDEBUG
-
-TEST(libsame_afsk_bit_duration_get, ReturnsProtocolValidBitDuration) {
-  // Mark and space time must be 1.92 milliseconds.
-  const float result = libsame_afsk_bit_duration_get() * 1'000;
-  EXPECT_NEAR(result, 1.92, 0.1); // 1.92ms
-}

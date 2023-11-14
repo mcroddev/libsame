@@ -28,7 +28,7 @@
 #ifndef NDEBUG
 // Application specified userdata. For our purposes, we have no use for it.
 // This is used only for assertion handling.
-void *libsame_userdata_;
+void *libsame_dbg_userdata_;
 
 // If libsame was built in debug mode, it is required that a method of this
 // prototype be present at link time. Instead of directly calling `assert()`,

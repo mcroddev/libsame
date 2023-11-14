@@ -24,7 +24,7 @@
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-void *libsame_userdata_ = nullptr;
+void *libsame_dbg_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,
@@ -32,8 +32,3 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
   std::abort();
 }
 #endif  // NDEBUG
-
-TEST(libsame_attn_sig_duration_max_get,
-     ReturnsProtocolValidMaxAttnSigDuration) {
-  EXPECT_EQ(libsame_attn_sig_duration_max_get(), 25);
-}

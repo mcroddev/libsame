@@ -24,7 +24,7 @@
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-void *libsame_userdata_ = nullptr;
+void *libsame_dbg_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,
@@ -32,7 +32,3 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
   std::abort();
 }
 #endif  // NDEBUG
-
-TEST(libsame_afsk_space_freq_get, ReturnsProtocolValidSpaceFreq) {
-  EXPECT_FLOAT_EQ(libsame_afsk_space_freq_get(), 1562.5F);
-}

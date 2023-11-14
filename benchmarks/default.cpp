@@ -45,8 +45,9 @@ static void benchmark_default_path(benchmark::State& state) {
   struct libsame_gen_ctx ctx = {};
   std::cout << "Generation engine: " << libsame_gen_engine_desc_get() << '\n';
 
+  libsame_init();
+
   for (auto _ : state) {
-    libsame_init();
     libsame_ctx_init(&ctx, &header, 44100);
 
     while (ctx.seq_state != LIBSAME_SEQ_STATE_NUM) {

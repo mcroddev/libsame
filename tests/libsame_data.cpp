@@ -20,17 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/// @file libsame_data.cpp
-///
-/// These test cases verify that the data values being used are consistent with
-/// the latest version of the EAS protocol as defined by 47 CFR 11.31, which is
-/// located at https://preview.tinyurl.com/eas-ecfr.
-
 #include "gtest/gtest.h"
 #include "libsame/libsame.h"
 
 #ifndef NDEBUG
-void *libsame_userdata_ = nullptr;
+void *libsame_dbg_userdata_ = nullptr;
 
 extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
                                                    const char *const, const int,
@@ -38,5 +32,3 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
   std::abort();
 }
 #endif  // NDEBUG
-
-// XXX: Some cases need to be thought of here.
