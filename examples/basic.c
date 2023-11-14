@@ -46,6 +46,7 @@ _Noreturn void libsame_assert_failed(const char *const expr,
 }
 #endif  // NDEBUG
 
+// The audio device to use for outputting the SAME header.
 static SDL_AudioDeviceID audio_dev_id;
 
 // This function is called when the application terminates via the end of main()
@@ -55,7 +56,7 @@ static void example_on_exit(void) {
   SDL_Quit();
 }
 
-// This function handled signals from the operating system.
+// This function handles signals from the operating system.
 // We use it to handle Ctrl+C (^C) input from the keyboard to terminate the
 // example.
 static void sig_handler(const int signum) {

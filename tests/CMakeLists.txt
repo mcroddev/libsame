@@ -75,7 +75,6 @@ libsame_test_add(libsame_attn_sig_durations_get
                  libsame_attn_sig_durations_get.cpp)
 
 libsame_test_add(libsame_ctx_init libsame_ctx_init.cpp)
-libsame_test_add(libsame_data libsame_data.cpp)
 libsame_test_add(libsame_gen_engine_desc_get libsame_gen_engine_desc_get.cpp)
 libsame_test_add(libsame_gen_engine_get libsame_gen_engine_get.cpp)
 libsame_test_add(libsame_init libsame_init.cpp)

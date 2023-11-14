@@ -24,7 +24,7 @@
 // any failure conditions, and its only use is to populate the sine wave lookup
 // table when the LUT engine is used. This table is statically allocated and
 // local to the library with no public exposure. This may change in the future,
-// but for now it is pointless.
+// but for now it is pointless. This unit test is stubbed out accordingly.
 
 #include "gtest/gtest.h"
 

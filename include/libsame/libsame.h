@@ -151,7 +151,7 @@ enum libsame_seq_state {
   LIBSAME_SEQ_STATE_NUM
 };
 
-/// Defines the possible generation engines that are in use.
+/// Defines the generation engine that libsame was compiled for.
 enum libsame_gen_engine {
   LIBSAME_GEN_ENGINE_LIBC,
   LIBSAME_GEN_ENGINE_LUT,

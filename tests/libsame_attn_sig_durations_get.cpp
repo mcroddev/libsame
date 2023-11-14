@@ -33,9 +33,10 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
 }
 #endif  // NDEBUG
 
+/// Verifies that the attention signal durations returned are valid according to
+/// the current specification.
 TEST(libsame_attn_sig_durations_get, ValidPerProtocolSpec) {
   unsigned int min, max;
-
   libsame_attn_sig_durations_get(&min, &max);
 
   EXPECT_EQ(min, 8);

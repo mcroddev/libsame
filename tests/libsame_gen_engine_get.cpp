@@ -20,8 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// XXX: This would be a major pain to test. We would have to compile multiple
+// versions of libsame just to ensure that all the return values make sense. The
+// function is simple enough that a unit test is probably not necessary. This
+// is stubbed out however in case that changes.
+
 #include "gtest/gtest.h"
-#include "libsame/libsame.h"
 
 #ifndef NDEBUG
 void *libsame_dbg_userdata_ = nullptr;

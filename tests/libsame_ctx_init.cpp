@@ -50,6 +50,8 @@ extern "C" [[noreturn]] void libsame_assert_failed(const char *const,
 }
 #endif  // NDEBUG
 
+/// Verifies that the sample rate is set in the context once passed to the
+/// libsame_ctx_init function.
 TEST(libsame_ctx_init, SampleRateIsSet) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
@@ -57,6 +59,7 @@ TEST(libsame_ctx_init, SampleRateIsSet) {
   EXPECT_EQ(ctx.sample_rate, SAMPLE_RATE);
 }
 
+/// Verifies that the number of AFSK samples per bit is calculated correctly.
 TEST(libsame_ctx_init, AFSKSamplesPerBitCalculatesCorrectly) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
@@ -68,6 +71,8 @@ TEST(libsame_ctx_init, AFSKSamplesPerBitCalculatesCorrectly) {
   EXPECT_EQ(ctx.afsk_samples_per_bit, AFSK_SAMPLES_PER_BIT);
 }
 
+/// Verifies that the number of AFSK header samples remaining is calculated
+/// correctly.
 TEST(libsame_ctx_init, AFSKHeaderSamplesRemainingCalculatesCorrectly) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
@@ -84,6 +89,8 @@ TEST(libsame_ctx_init, AFSKHeaderSamplesRemainingCalculatesCorrectly) {
             AFSK_HEADER_TOTAL_SAMPLES);
 }
 
+/// Verifies that the number of AFSK EOM samples remaining is calculated
+/// correctly.
 TEST(libsame_ctx_init, AFSKEOMSamplesRemainingCalculatesCorrectly) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
@@ -100,6 +107,8 @@ TEST(libsame_ctx_init, AFSKEOMSamplesRemainingCalculatesCorrectly) {
             AFSK_EOM_TOTAL_SAMPLES);
 }
 
+/// Verifies that the number of silence samples remaining is calculated
+/// correctly.
 TEST(libsame_ctx_init, SilenceSamplesRemainingCalculatesCorrectly) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
@@ -122,6 +131,8 @@ TEST(libsame_ctx_init, SilenceSamplesRemainingCalculatesCorrectly) {
             SILENCE_PERIOD * SAMPLE_RATE);
 }
 
+/// Verifies that the number of attention signal samples is calculated
+/// correctly.
 TEST(libsame_ctx_init, AttentionSignalSamplesCalculatesCorrectly) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
@@ -133,29 +144,34 @@ TEST(libsame_ctx_init, AttentionSignalSamplesCalculatesCorrectly) {
             NUM_SAMPLES);
 }
 
+/// Verifies that the preamble is present in the first LIBSAME_PREAMBLE_NUM
+/// bytes of the header.
 TEST(libsame_ctx_init, PreambleIsPresent) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
 
-  static constexpr size_t PREAMBLE_LEN = 16;
   static constexpr std::uint8_t PREAMBLE = 0xAB;
 
-  for (size_t i = 0; i < PREAMBLE_LEN; ++i) {
+  for (size_t i = 0; i < LIBSAME_PREAMBLE_NUM; ++i) {
     EXPECT_EQ(ctx.header_data[i], PREAMBLE);
   }
 }
 
+/// Verifies that the ASCII start of marker code is present immediately after
+/// the preamble.
 TEST(libsame_ctx_init, StartMarkerIsPresent) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
 
   const std::string start_marker("ZCZC");
-  const std::string str(reinterpret_cast<const char *>(&ctx.header_data[16]),
-                        start_marker.length());
+  const std::string str(
+      reinterpret_cast<const char *>(&ctx.header_data[LIBSAME_PREAMBLE_NUM]),
+      start_marker.length());
 
   EXPECT_EQ(start_marker, str);
 }
 
+/// Verifies that fields are properly added to the header data.
 TEST(libsame_ctx_init, FieldsAreAdded) {
   ctx = {};
   libsame_ctx_init(&ctx, &header, SAMPLE_RATE);
