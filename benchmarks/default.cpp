@@ -26,8 +26,9 @@
 
 #include "libsame/libsame.h"
 
-static void benchmark_default_path(benchmark::State& state) {
-  const struct libsame_header header = {
+namespace {
+void benchmark_default_path(benchmark::State& state) {
+  constexpr const struct libsame_header header = {
       .location_codes = {"048484", "048024", "048484", "048024", "048484",
                          "048024", "048484", "048024", "048484", "048024",
                          "048484", "048024", "048484", "048024", "048484",
@@ -55,6 +56,7 @@ static void benchmark_default_path(benchmark::State& state) {
     }
   }
 }
+}  // namespace
 BENCHMARK(benchmark_default_path);
 
 BENCHMARK_MAIN();
