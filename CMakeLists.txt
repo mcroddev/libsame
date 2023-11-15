@@ -88,6 +88,11 @@ function(libsame_build_settings_c_configure)
                            -Wvla
                            -Wwrite-strings)
 
+    if (LIBSAME_OPTIMIZE_FOR_HOST AND NOT CMAKE_TOOLCHAIN_FILE)
+      target_compile_options(libsame-build-settings-c INTERFACE -mtune=native
+                                                                -march=native)
+    endif()
+
     if ((CMAKE_C_COMPILER_ID MATCHES "Clang" AND
         CMAKE_C_COMPILER_VERSION GREATER_EQUAL "13.0.0") OR
         CMAKE_C_COMPILER_ID MATCHES "GNU")
@@ -106,7 +111,7 @@ function(libsame_build_settings_c_configure)
                              -fno-omit-frame-pointer)
     endif()
 
-    if (LIBSAME_USE_SANITIZERS)
+    if (LIBSAME_ENABLE_SANITIZERS)
       target_compile_options(libsame-build-settings-c INTERFACE
                              -fno-omit-frame-pointer
                              -fsanitize=address,undefined)
@@ -169,6 +174,11 @@ function(libsame_build_settings_cpp_configure)
                            -Wvla
                            -Wwrite-strings)
 
+    if (LIBSAME_OPTIMIZE_FOR_HOST AND NOT CMAKE_TOOLCHAIN_FILE)
+      target_compile_options(libsame-build-settings-c INTERFACE -mtune=native
+                                                                -march=native)
+    endif()
+
     if ((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
         CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL "13.0.0") OR
         CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -187,7 +197,7 @@ function(libsame_build_settings_cpp_configure)
                              -fno-omit-frame-pointer)
     endif()
 
-    if (LIBSAME_USE_SANITIZERS)
+    if (LIBSAME_ENABLE_SANITIZERS)
       target_compile_options(libsame-build-settings-cpp INTERFACE
                              -fno-omit-frame-pointer
                              -fsanitize=address,undefined)
@@ -215,6 +225,8 @@ endfunction()
 function(libsame_options_handle)
   set(LIBSAME_GENERATION_ENGINE "libc"
       CACHE STRING "Specifies the generation engine to use.")
+
+  option(LIBSAME_OPTIMIZE_FOR_HOST "Optimize for host system" OFF)
 
   option(LIBSAME_BUILD_BENCHMARKS "Build the benchmarks" OFF)
   option(LIBSAME_BUILD_BENCHMARKS_WITH_SHARED_LIBRARY

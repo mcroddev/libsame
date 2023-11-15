@@ -56,6 +56,20 @@ For the most part, there are no defaults set unless stated otherwise. Generally
 speaking, you must explicitly configure libsame to your needs using the
 following CMake options below:
 
+    -DLIBSAME_OPTIMIZE_FOR_HOST:BOOL=ON/OFF
+
+      ON:  Compile the library with architecture optimizations specific to this
+           host system depending on the compiler.
+
+           This will render the library non-portable to other systems, but may
+           increase performance.
+
+      OFF: Compile the library without architecture optimizations specific to
+           this host system. This is the default.
+
+      This option has no effect if a toolchain file is in use via
+      CMAKE_TOOLCHAIN_FILE.
+
     -DLIBSAME_GENERATION_ENGINE:STRING=TaylorSeries/LUT/libc/App
       Specifies the generation engine to use.
 

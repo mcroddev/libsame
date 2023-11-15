@@ -156,14 +156,20 @@ static int16_t sin_gen(struct libsame_gen_ctx *const restrict ctx,
   (void)t;
   LIBSAME_ASSERT(phase != NULL);
 
-  const int16_t sample = sin_lut[(size_t)*phase];
+  float integral;
+  const float frac = modff(*phase, &integral);
+
+  const int16_t v0 = sin_lut[(size_t)integral + 0];
+  const int16_t v1 = sin_lut[(size_t)integral + 1];
+
+  const int16_t sample = (int16_t)((float)v0 + ((float)v1 - (float)v0) * frac);
 
   const float delta =
       (freq * LIBSAME_CONFIG_SINE_LUT_SIZE) / (float)ctx->sample_rate;
 
   *phase += delta;
 
-  while (*phase >= LIBSAME_CONFIG_SINE_LUT_SIZE) {
+  while (*phase >= (LIBSAME_CONFIG_SINE_LUT_SIZE - 1)) {
     *phase -= LIBSAME_CONFIG_SINE_LUT_SIZE;
   }
   return sample;
