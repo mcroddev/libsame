@@ -22,8 +22,8 @@
 
 find_package(SDL2 QUIET)
 
-if (NOT ${SDL2_found})
-  if (NOT LIBSAME_DOWNLOAD_DEPS)
+if (NOT SDL2_found)
+  if (NOT LIBSAME_DOWNLOAD_MISSING_DEPS)
     message(FATAL_ERROR
             "SDL2 was not found, and downloading missing dependencies is "
             "disabled.")
@@ -88,8 +88,8 @@ function(example_add SRC NAME)
   target_link_libraries(${NAME} PRIVATE
                         ${SAME_LIB}
                         libsame-build-settings-c
-                        SDL2::SDL2
-                        SDL2::SDL2main)
+                        SDL2::SDL2main
+                        SDL2::SDL2)
 
   target_include_directories(${NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 endfunction()

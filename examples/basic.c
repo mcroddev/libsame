@@ -22,6 +22,7 @@
 
 #include <SDL.h>
 #include <signal.h>
+#include <stdio.h>
 
 #include "libsame/libsame.h"
 
@@ -92,7 +93,7 @@ static void user_warning_handle(void) {
   }
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
   // We want to handle SIGINT (i.e., Ctrl+C) so that the user may stop this
   // example at any time.
   signal(SIGINT, sig_handler);
