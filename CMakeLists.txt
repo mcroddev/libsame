@@ -286,12 +286,14 @@ if (LIBSAME_BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-if (LIBSAME_BUILD_BENCHMARKS AND NOT
-    CMAKE_BUILD_TYPE MATCHES "Release|MinSizeRel|RelWithDebInfo")
-  message(WARNING
-          "You are building the benchmarks for libsame in debug mode, which is "
-          "completely pointless. Use Release/MinSizeRel/RelWithDebInfo build "
-          "types instead.")
+if (LIBSAME_BUILD_BENCHMARKS)
+  if (NOT CMAKE_BUILD_TYPE MATCHES "Release|MinSizeRel|RelWithDebInfo")
+    message(WARNING
+            "You are building the benchmarks for libsame in debug mode, which "
+            "is completely pointless. Use Release/MinSizeRel/RelWithDebInfo "
+            "build types instead.")
+  endif()
+
   add_subdirectory(benchmarks)
 endif()
 

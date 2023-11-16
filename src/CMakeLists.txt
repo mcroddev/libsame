@@ -24,7 +24,12 @@ include(CheckSymbolExists)
 include(CheckIncludeFile)
 
 function(lib_handle NAME)
-  target_link_libraries(${NAME} PRIVATE libsame-build-settings-c m)
+  target_link_libraries(${NAME} PRIVATE libsame-build-settings-c)
+
+  if (UNIX)
+    target_link_libraries(${NAME} PRIVATE m)
+  endif()
+
   target_include_directories(${NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
   target_include_directories(${NAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 

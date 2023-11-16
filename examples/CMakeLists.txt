@@ -48,9 +48,9 @@ if (NOT ${SDL2_found})
     set(SDL_HAPTIC OFF CACHE BOOL "" FORCE)
     set(SDL_HIDAPI OFF CACHE BOOL "" FORCE)
     set(SDL_POWER OFF CACHE BOOL "" FORCE)
-    set(SDL_TIMERS OFF CACHE BOOL "" FORCE)
+    set(SDL_TIMERS ON CACHE BOOL "" FORCE)
     set(SDL_FILE OFF CACHE BOOL "" FORCE)
-    set(SDL_CPUINFO OFF CACHE BOOL "" FORCE)
+    set(SDL_CPUINFO ON CACHE BOOL "" FORCE)
     set(SDL_FILESYSTEM OFF CACHE BOOL "" FORCE)
     set(SDL_SENSOR OFF CACHE BOOL "" FORCE)
     set(SDL_LOCALE OFF CACHE BOOL "" FORCE)
@@ -88,7 +88,8 @@ function(example_add SRC NAME)
   target_link_libraries(${NAME} PRIVATE
                         ${SAME_LIB}
                         libsame-build-settings-c
-                        SDL2::SDL2)
+                        SDL2::SDL2
+                        SDL2::SDL2main)
 
   target_include_directories(${NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 endfunction()
