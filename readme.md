@@ -56,6 +56,14 @@ For the most part, there are no defaults set unless stated otherwise. Generally
 speaking, you must explicitly configure libsame to your needs using the
 following CMake options below:
 
+    -DLIBSAME_ENABLE_LTO:BOOL=ON/OFF
+
+      ON: Enables the use of link-time optimization if supported by the
+          compiler. This may increase build times but may yield better
+          performance.
+
+      OFF: Do not use link-time optimization.
+
     -DLIBSAME_OPTIMIZE_FOR_HOST:BOOL=ON/OFF
 
       ON:  Compile the library with architecture optimizations specific to this

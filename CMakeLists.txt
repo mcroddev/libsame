@@ -227,6 +227,7 @@ function(libsame_options_handle)
       CACHE STRING "Specifies the generation engine to use.")
 
   option(LIBSAME_OPTIMIZE_FOR_HOST "Optimize for host system" OFF)
+  option(LIBSAME_ENABLE_LTO "Enable link-time optimization" OFF)
 
   option(LIBSAME_BUILD_BENCHMARKS "Build the benchmarks" OFF)
   option(LIBSAME_BUILD_BENCHMARKS_WITH_SHARED_LIBRARY
@@ -255,6 +256,10 @@ endfunction()
 
 libsame_options_handle()
 
+if (LIBSAME_ENABLE_LTO)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 if (LIBSAME_GENERATION_ENGINE STREQUAL "libc")
   set(LIBSAME_CONFIG_SINE_USE_LIBC ON)
 elseif (LIBSAME_GENERATION_ENGINE STREQUAL "TaylorSeries")
@@ -281,14 +286,12 @@ if (LIBSAME_BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-if (LIBSAME_BUILD_BENCHMARKS)
-  if (NOT CMAKE_BUILD_TYPE MATCHES "Release|MinSizeRel|RelWithDebInfo")
-    message(WARNING
-            "You are building the benchmarks for libsame in debug mode, which "
-            "is completely pointless. Use Release/MinSizeRel/RelWithDebInfo"
-            " build types instead.")
-  endif()
-
+if (LIBSAME_BUILD_BENCHMARKS AND NOT
+    CMAKE_BUILD_TYPE MATCHES "Release|MinSizeRel|RelWithDebInfo")
+  message(WARNING
+          "You are building the benchmarks for libsame in debug mode, which is "
+          "completely pointless. Use Release/MinSizeRel/RelWithDebInfo build "
+          "types instead.")
   add_subdirectory(benchmarks)
 endif()
 

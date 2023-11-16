@@ -41,6 +41,11 @@ if (NOT ${benchmark_FOUND})
 
     # Do not build the unit tests.
     set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+
+    if (LIBSAME_ENABLE_LTO)
+      set(BENCHMARK_ENABLE_LTO ON CACHE BOOL "" FORCE)
+    endif()
 
     FetchContent_MakeAvailable(benchmark)
   endif()
