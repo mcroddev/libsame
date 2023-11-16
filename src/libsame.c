@@ -87,12 +87,12 @@
 #include "libsame/debug.h"
 #include "libsame_config.h"
 
-/// The value of PI up to 35 decimal places.
-#define LIBSAME_PI (3.14159265358979323846264338327950288F)
-
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
 static int16_t sin_lut[LIBSAME_CONFIG_SINE_LUT_SIZE];
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
+
+/// The value of PI up to 35 decimal places.
+static const float PI_CONST = 3.14159265358979323846264338327950288F;
 
 /// The expected size of the EOM header.
 static const unsigned int EOM_HEADER_SIZE = LIBSAME_PREAMBLE_NUM + 4;
@@ -151,7 +151,7 @@ static int16_t sin_gen(struct libsame_gen_ctx *const restrict ctx,
 #if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
   (void)ctx;
   (void)phase;
-  return (int16_t)(sinf(LIBSAME_PI * 2 * t * freq) * INT16_MAX);
+  return (int16_t)(sinf(PI_CONST * 2 * t * freq) * INT16_MAX);
 #elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
   (void)t;
   LIBSAME_ASSERT(phase != NULL);
@@ -177,17 +177,17 @@ static int16_t sin_gen(struct libsame_gen_ctx *const restrict ctx,
   (void)ctx;
   (void)phase;
 
-  float x = LIBSAME_PI * 2 * t * freq;
+  float x = PI_CONST * 2 * t * freq;
 
   unsigned int neg = x < 0.0F;
   if (neg) {
     x = -x;
   }
-  x = fmodf(x, 2 * LIBSAME_PI);
+  x = fmodf(x, 2 * PI_CONST);
 
-  if (x >= LIBSAME_PI) {
+  if (x >= PI_CONST) {
     neg = !neg;
-    x -= LIBSAME_PI;
+    x -= PI_CONST;
   }
 
   // These factorials are precalculated for the low-ordered Taylor Series.
@@ -320,7 +320,7 @@ void libsame_init(void) {
   for (size_t sample_num = 0; sample_num < LIBSAME_CONFIG_SINE_LUT_SIZE;
        ++sample_num) {
     const float t = (float)sample_num / LIBSAME_CONFIG_SINE_LUT_SIZE;
-    const float sine = sinf(LIBSAME_PI * 2 * t);
+    const float sine = sinf(PI_CONST * 2 * t);
 
     const int16_t sample = (int16_t)(sine * INT16_MAX);
     sin_lut[sample_num] = sample;
