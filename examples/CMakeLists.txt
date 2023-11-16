@@ -22,7 +22,7 @@
 
 find_package(SDL2 QUIET)
 
-if (NOT SDL2_found)
+if (NOT SDL2_FOUND)
   if (NOT LIBSAME_DOWNLOAD_MISSING_DEPS)
     message(FATAL_ERROR
             "SDL2 was not found, and downloading missing dependencies is "
