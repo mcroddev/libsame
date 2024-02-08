@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright 2023 Michael Rodriguez
+// Copyright 2023-2024 Michael Rodriguez
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to deal
@@ -26,8 +26,8 @@
 /// Using a [GNU Compiler Collection](https://gcc.gnu.org) or
 /// [Clang/LLVM](https://clang.llvm.org/) based compiler is recommended.
 
-#ifndef LIBSAME_COMPILER_H
-#define LIBSAME_COMPILER_H
+#ifndef LIBSAME_PRIVATE_COMPILER_H
+#define LIBSAME_PRIVATE_COMPILER_H
 
 #pragma once
 
@@ -35,38 +35,16 @@
 extern "C" {
 #endif  // __cplusplus
 
-#if defined(__clang__) || defined(__GNUC__)
-/// Informs the compiler that some code will never be executed.
-#define LIBSAME_UNREACHABLE __builtin_unreachable()
-
-/// Informs the compiler to always inline a function regardless of compiler
-/// optimization level and/or even if the compiler heuristics do not evaluate it
-/// to be beneficial.
-#define LIBSAME_ALWAYS_INLINE inline __attribute__((always_inline))
-
-/// Informs the compiler that a particular branch is unlikely to be executed.
-#define LIBSAME_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
-
-/// Informs the compiler that a particular branch is likely to be executed.
-#define LIBSAME_LIKELY(expr) __builtin_expect(!!(expr), 1)
+#ifdef __GNUC__
+/// Informs the compiler that this block will never be executed.
+#define UNREACHABLE __builtin_unreachable()
 #else
-/// Informs the compiler that some code will never be executed.
-#define LIBSAME_UNREACHABLE
-
-/// Informs the compiler to always inline a function regardless of compiler
-/// optimization level and/or even if the compiler heuristics do not evaluate it
-/// to be beneficial.
-#define LIBSAME_ALWAYS_INLINE
-
-/// Informs the compiler that a particular branch is unlikely to be executed.
-#define LIBSAME_UNLIKELY(expr)
-
-/// Informs the compiler that a particular branch is likely to be executed.
-#define LIBSAME_LIKELY(expr)
-#endif  // defined(__clang__) || defined(__GNUC__)
+/// Informs the compiler that this block will never be executed.
+#define UNREACHABLE
+#endif  // __GNUC__
 
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
 
-#endif  // LIBSAME_COMPILER_H
+#endif  // LIBSAME_PRIVATE_COMPILER_H

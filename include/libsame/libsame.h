@@ -41,6 +41,8 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#include "types.h"
+
 /// The number of times the preamble will appear.
 #define LIBSAME_PREAMBLE_NUM (16U)
 
@@ -192,13 +194,13 @@ struct libsame_header {
 /// call to the libsame_samples_gen function.
 struct libsame_gen_ctx {
   /// The buffer containing the audio samples.
-  int16_t sample_data[LIBSAME_SAMPLES_NUM_MAX];
+  s16 sample_data[LIBSAME_SAMPLES_NUM_MAX];
 
   /// The header data to generate an AFSK burst from.
-  uint8_t header_data[LIBSAME_HEADER_SIZE_MAX];
+  u8 header_data[LIBSAME_HEADER_SIZE_MAX];
 
   /// The number of samples remaining for each generation sequence.
-  unsigned int seq_samples_remaining[LIBSAME_SEQ_STATE_NUM];
+  uint seq_samples_remaining[LIBSAME_SEQ_STATE_NUM];
 
   /// Defines the current AFSK state.
   struct {
@@ -210,10 +212,10 @@ struct libsame_gen_ctx {
     float phase;
 
     /// The current bit we're generating a sine wave for.
-    unsigned int bit_pos;
+    uint bit_pos;
 
     /// The current sample we're generating.
-    unsigned int sample_num;
+    uint sample_num;
   } afsk;
 
   /// The function to call when a sine wave needs to be generated.
@@ -224,7 +226,7 @@ struct libsame_gen_ctx {
   /// @param userdata Application specific userdata, if any.
   /// @param t The time period of the sine wave.
   /// @param freq The desired frequency of the sine wave.
-  int16_t (*sin_gen)(void *const userdata, const float t, const float freq);
+  s16 (*sin_gen)(void *const userdata, const float t, const float freq);
 
   /// Application specified userdata for the sine generation function, if any.
   ///
@@ -244,33 +246,45 @@ struct libsame_gen_ctx {
   float attn_sig_phase_second;
 
   /// The sample rate as specified by libsame_ctx_init().
-  unsigned int sample_rate;
+  uint sample_rate;
 
   /// The number of samples per bit as defined by the specified sample rate for
   /// AFSK bursts.
-  unsigned int afsk_samples_per_bit;
+  uint afsk_samples_per_bit;
 
   /// The current sequence of the generation.
   enum libsame_seq_state seq_state;
 
   /// The current sample we're generating for the attention signal.
-  unsigned int attn_sig_sample_num;
+  uint attn_sig_sample_num;
 };
 
 void libsame_init(void);
 
-void libsame_ctx_init(struct libsame_gen_ctx *const ctx,
-                      const struct libsame_header *const header,
-                      const unsigned int sample_rate);
+void libsame_ctx_init(struct libsame_gen_ctx *ctx,
+                      const struct libsame_header *header, uint sample_rate);
 
-void libsame_samples_gen(struct libsame_gen_ctx *const ctx);
+void libsame_samples_gen(struct libsame_gen_ctx *ctx);
 
+/// Retrieves the generation engine this version of libsame was compiled for.
+///
+/// @returns The generation engine this version of libsame was compiled for.
 enum libsame_gen_engine libsame_gen_engine_get(void);
 
+/// Retrieves the full description of the generation engine in use.
+///
+/// @returns The full description of the generation engine in use.
 const char *libsame_gen_engine_desc_get(void);
 
-void libsame_attn_sig_durations_get(unsigned int *const min,
-                                    unsigned int *const max);
+/// Retrieves both the minimum and maximum number of seconds an attention signal
+/// can be.
+///
+/// An example usage for this function is to set the minimum/maximum values on a
+/// GUI spinbox governing this attribute.
+///
+/// @param min Where to store the minimum duration of the attention signal.
+/// @param max Where to store the maximum duration of the attention signal.
+void libsame_attn_sig_durations_get(uint *min, uint *max);
 
 #ifdef __cplusplus
 }

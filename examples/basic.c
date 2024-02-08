@@ -26,27 +26,6 @@
 
 #include "libsame/libsame.h"
 
-#ifndef NDEBUG
-// Application specified userdata. For our purposes, we have no use for it.
-// This is used only for assertion handling.
-void *libsame_dbg_userdata_;
-
-// If libsame was built in debug mode, it is required that a method of this
-// prototype be present at link time. Instead of directly calling `assert()`,
-// we give applications a chance to do something with this information before
-// aborting. For this case however, if we get here, something went terribly
-// wrong, and we should just abort.
-_Noreturn void libsame_assert_failed(const char *const expr,
-                                     const char *const file, const int line_no,
-                                     void *userdata) {
-  (void)userdata;
-
-  fprintf(stderr, "libsame: assertion '%s' failed (%s:%d)\n", expr, file,
-          line_no);
-  abort();
-}
-#endif  // NDEBUG
-
 // The audio device to use for outputting the SAME header.
 static SDL_AudioDeviceID audio_dev_id;
 
@@ -83,7 +62,7 @@ static void user_warning_handle(void) {
       "WARNED.\n\n");
   printf("You may end this example at any time using Ctrl+C (^C).\n\n");
 
-  unsigned int count = 10;
+  uint count = 10;
 
   while (count) {
     printf("Time remaining: %d \r", count);
@@ -93,7 +72,7 @@ static void user_warning_handle(void) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
   // We want to handle SIGINT (i.e., Ctrl+C) so that the user may stop this
   // example at any time.
   signal(SIGINT, sig_handler);
@@ -165,7 +144,7 @@ int main(int argc, char *argv[]) {
 
     // Now push them to the audio device.
     if (SDL_QueueAudio(audio_dev_id, ctx.sample_data,
-                       sizeof(int16_t) * LIBSAME_SAMPLES_NUM_MAX) < 0) {
+                       sizeof(s16) * LIBSAME_SAMPLES_NUM_MAX) < 0) {
       fprintf(stderr, "SDL_QueueAudio() failed: %s\n", SDL_GetError());
       return EXIT_FAILURE;
     }

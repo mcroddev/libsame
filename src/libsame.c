@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Copyright 2023 Michael Rodriguez
+// Copyright 2023-2024 Michael Rodriguez
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to deal
@@ -55,7 +55,7 @@
 ///     - The duration of each bit is 1.92ms, and we must produce 520.83 bits
 ///       per second. This gives us a calculation of ((1.0 / 520.83) * 44100)
 ///       which gives us a sum of 84.672539. However, the value needs to be
-///       rounded UP to 85.
+///       rounded UP to 85 to avoid a loss of precision.
 ///
 ///     - There are 8 bits in a character.
 ///
@@ -80,59 +80,59 @@
 
 #include "libsame/libsame.h"
 
+#include <assert.h>
 #include <math.h>
 #include <string.h>
 
-#include "libsame/compiler.h"
-#include "libsame/debug.h"
+#include "compiler.h"
 #include "libsame_config.h"
 
 #ifdef LIBSAME_CONFIG_SINE_USE_LUT
-static int16_t sin_lut[LIBSAME_CONFIG_SINE_LUT_SIZE];
+static s16 sin_lut[LIBSAME_CONFIG_SINE_LUT_SIZE];
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
 
 /// The value of PI up to 35 decimal places.
-static const float PI_CONST = 3.14159265358979323846264338327950288F;
+#define PI (3.14159265358979323846264338327950288F)
 
 /// The expected size of the EOM header.
-static const unsigned int EOM_HEADER_SIZE = LIBSAME_PREAMBLE_NUM + 4;
+#define EOM_HEADER_SIZE (LIBSAME_PREAMBLE_NUM + 4)
 
 /// This is a consecutive string of bits (sixteen bytes of AB hexadecimal
 /// [8 bit byte 10101011]) sent to clear the system, set AGC and set
 /// asynchronous decoder clocking cycles. The preamble must be transmitted
 /// before each header and End of Message code.
-static const uint8_t PREAMBLE = 0xAB;
+#define PREAMBLE (0xAB)
 
 /// The Preamble and EAS Codes must use Audio Frequency Shift Keying at a rate
 /// of 520.83 bits per second to transmit the codes.
-static const float AFSK_BIT_RATE = 520.83F;
+#define AFSK_BIT_RATE (520.83F)
 
 // Mark frequency is 2083.3 Hz.
-static const float AFSK_MARK_FREQ = 2083.3F;
+#define AFSK_MARK_FREQ (2083.3F)
 
 /// Space frequency is 1562.5 Hz.
-static const float AFSK_SPACE_FREQ = 1562.5F;
+#define AFSK_SPACE_FREQ (1562.5F)
 
 /// The number of bits in a character.
-static const unsigned int AFSK_BITS_PER_CHAR = 8;
+#define AFSK_BITS_PER_CHAR (8)
 
 /// Mark and space time must be 1.92 milliseconds.
-static const float AFSK_BIT_DURATION = 1.0F / AFSK_BIT_RATE;
+#define AFSK_BIT_DURATION (1.0F / AFSK_BIT_RATE)
 
 /// The first fundamental frequency of the attention signal.
-static const float ATTN_SIG_FREQ_FIRST = 853.0F;
+#define ATTN_SIG_FREQ_FIRST (853.0F)
 
 /// The second fundamental frequency of the attention signal.
-static const float ATTN_SIG_FREQ_SECOND = 960.0F;
+#define ATTN_SIG_FREQ_SECOND (960.0F)
 
 /// The number of seconds one period of silence should be.
-static const unsigned int SILENCE_DURATION = 1;
+#define SILENCE_DURATION (1)
 
 /// The minimum duration of the attention signal in seconds.
-static const unsigned int ATTN_SIG_DURATION_MIN = 8;
+#define ATTN_SIG_DURATION_MIN (8)
 
 /// The maximum duration of the attention signal in seconds.
-static const unsigned int ATTN_SIG_DURATION_MAX = 25;
+#define ATTN_SIG_DURATION_MAX (25)
 
 /// Generates one sample of a sine wave.
 ///
@@ -145,24 +145,24 @@ static const unsigned int ATTN_SIG_DURATION_MAX = 25;
 /// @param t The time period of the sine wave.
 /// @param freq The desired frequency of the sine wave.
 /// @returns The generated sine wave sample multiplied by INT16_MAX.
-static int16_t sin_gen(struct libsame_gen_ctx *const restrict ctx,
-                       float *const restrict phase, const float t,
-                       const float freq) {
+static s16 sin_gen(struct libsame_gen_ctx *const restrict ctx,
+                   float *const restrict phase, const float t,
+                   const float freq) {
 #if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
   (void)ctx;
   (void)phase;
-  return (int16_t)(sinf(PI_CONST * 2 * t * freq) * INT16_MAX);
+  return (s16)(sinf(PI * 2 * t * freq) * INT16_MAX);
 #elif defined(LIBSAME_CONFIG_SINE_USE_LUT)
   (void)t;
-  LIBSAME_ASSERT(phase != NULL);
+  assert(phase != NULL);
 
   float integral;
   const float frac = modff(*phase, &integral);
 
-  const int16_t v0 = sin_lut[(size_t)integral + 0];
-  const int16_t v1 = sin_lut[(size_t)integral + 1];
+  const s16 v0 = sin_lut[(size_t)integral + 0];
+  const s16 v1 = sin_lut[(size_t)integral + 1];
 
-  const int16_t sample = (int16_t)((float)v0 + ((float)v1 - (float)v0) * frac);
+  const s16 sample = (s16)((float)v0 + ((float)v1 - (float)v0) * frac);
 
   const float delta =
       (freq * LIBSAME_CONFIG_SINE_LUT_SIZE) / (float)ctx->sample_rate;
@@ -177,17 +177,17 @@ static int16_t sin_gen(struct libsame_gen_ctx *const restrict ctx,
   (void)ctx;
   (void)phase;
 
-  float x = PI_CONST * 2 * t * freq;
+  float x = PI * 2 * t * freq;
 
-  unsigned int neg = x < 0.0F;
+  uint neg = x < 0.0F;
   if (neg) {
     x = -x;
   }
-  x = fmodf(x, 2 * PI_CONST);
+  x = fmodf(x, 2 * PI);
 
-  if (x >= PI_CONST) {
+  if (x >= PI) {
     neg = !neg;
-    x -= PI_CONST;
+    x -= PI;
   }
 
   // These factorials are precalculated for the low-ordered Taylor Series.
@@ -200,7 +200,7 @@ static int16_t sin_gen(struct libsame_gen_ctx *const restrict ctx,
   const float t2 = powf(x, 7) / FACT_T2;
 
   const float sample = (x - t0) + (t1 - t2);
-  return (int16_t)((neg ? -sample : sample) * INT16_MAX);
+  return (s16)((neg ? -sample : sample) * INT16_MAX);
 #elif defined(LIBSAME_CONFIG_SINE_USE_APP)
   (void)phase;
   return ctx->sin_gen(&ctx->sin_gen_userdata, t, freq);
@@ -218,16 +218,16 @@ static int16_t sin_gen(struct libsame_gen_ctx *const restrict ctx,
 /// @param data_size The new occupied space of the data.
 /// @param field The field to append.
 /// @param field_len The length of the field to append.
-static void field_add(uint8_t *const restrict data, size_t *restrict data_size,
-                      const char *restrict const field,
+static void field_add(u8 *const restrict data, size_t *restrict data_size,
+                      const char *const restrict field,
                       const size_t field_len) {
-  LIBSAME_ASSERT(data != NULL);
-  LIBSAME_ASSERT(data_size != NULL);
-  LIBSAME_ASSERT(field != NULL);
-  LIBSAME_ASSERT(field_len > 0);
+  assert(data != NULL);
+  assert(data_size != NULL);
+  assert(field != NULL);
+  assert(field_len > 0);
 
   // XXX: This should always be set to the largest field!
-  LIBSAME_ASSERT(field_len <= LIBSAME_CALLSIGN_LEN);
+  assert(field_len <= LIBSAME_CALLSIGN_LEN);
 
   memcpy(&data[*data_size], field, field_len);
   *data_size += field_len;
@@ -241,11 +241,11 @@ static void field_add(uint8_t *const restrict data, size_t *restrict data_size,
 /// @param data_size The size of the data to generate an AFSK burst from.
 /// @param sample_pos The position in the sample buffer to store the sample.
 static void afsk_gen(struct libsame_gen_ctx *const restrict ctx,
-                     const uint8_t *const restrict data, const size_t data_size,
+                     const u8 *const restrict data, const size_t data_size,
                      const size_t sample_pos) {
-  LIBSAME_ASSERT(ctx != NULL);
-  LIBSAME_ASSERT(data != NULL);
-  LIBSAME_ASSERT(data_size > 0);
+  assert(ctx != NULL);
+  assert(data != NULL);
+  assert(data_size > 0);
 
   const float freq = ((data[ctx->afsk.data_pos] >> ctx->afsk.bit_pos) & 1)
                          ? AFSK_MARK_FREQ
@@ -253,7 +253,7 @@ static void afsk_gen(struct libsame_gen_ctx *const restrict ctx,
 
   const float t = (float)ctx->afsk.sample_num / (float)ctx->sample_rate;
 
-  const int16_t sample = sin_gen(ctx, &ctx->afsk.phase, t, freq);
+  const s16 sample = sin_gen(ctx, &ctx->afsk.phase, t, freq);
 
   ctx->sample_data[sample_pos] = sample;
 
@@ -283,9 +283,9 @@ static void afsk_gen(struct libsame_gen_ctx *const restrict ctx,
 ///
 /// @param ctx The generation context to use.
 /// @param sample_pos The position in the sample buffer to store the sample.
-static void silence_gen(struct libsame_gen_ctx *const restrict ctx,
+static void silence_gen(struct libsame_gen_ctx *const ctx,
                         const size_t sample_pos) {
-  LIBSAME_ASSERT(ctx != NULL);
+  assert(ctx != NULL);
   ctx->sample_data[sample_pos] = 0;
 }
 
@@ -293,21 +293,21 @@ static void silence_gen(struct libsame_gen_ctx *const restrict ctx,
 ///
 /// @param ctx The generation context to use.
 /// @param sample_pos The position in the sample buffer to store the sample.
-static void attn_sig_gen(struct libsame_gen_ctx *const restrict ctx,
+static void attn_sig_gen(struct libsame_gen_ctx *const ctx,
                          const size_t sample_pos) {
-  LIBSAME_ASSERT(ctx != NULL);
+  assert(ctx != NULL);
 
   const float t = (float)ctx->attn_sig_sample_num / (float)ctx->sample_rate;
 
-  const int32_t first_sample =
+  const s32 first_sample =
       sin_gen(ctx, &ctx->attn_sig_phase_first, t, ATTN_SIG_FREQ_FIRST) /
-      (int32_t)sizeof(int16_t);
+      (s32)sizeof(s16);
 
-  const int32_t second_sample =
+  const s32 second_sample =
       sin_gen(ctx, &ctx->attn_sig_phase_second, t, ATTN_SIG_FREQ_SECOND) /
-      (int32_t)sizeof(int16_t);
+      (s32)sizeof(s16);
 
-  const int16_t sample = (int16_t)(first_sample + second_sample);
+  const int16_t sample = (s16)(first_sample + second_sample);
   ctx->sample_data[sample_pos] = sample;
 
   ctx->attn_sig_sample_num++;
@@ -320,9 +320,9 @@ void libsame_init(void) {
   for (size_t sample_num = 0; sample_num < LIBSAME_CONFIG_SINE_LUT_SIZE;
        ++sample_num) {
     const float t = (float)sample_num / LIBSAME_CONFIG_SINE_LUT_SIZE;
-    const float sine = sinf(PI_CONST * 2 * t);
+    const float sine = sinf(PI * 2 * t);
 
-    const int16_t sample = (int16_t)(sine * INT16_MAX);
+    const s16 sample = (s16)(sine * INT16_MAX);
     sin_lut[sample_num] = sample;
   }
 #endif  // LIBSAME_CONFIG_SINE_USE_LUT
@@ -340,10 +340,10 @@ void libsame_init(void) {
 void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
                       const struct libsame_header *const restrict header,
                       const unsigned int sample_rate) {
-  LIBSAME_ASSERT(ctx != NULL);
-  LIBSAME_ASSERT(header != NULL);
+  assert(ctx != NULL);
+  assert(header != NULL);
 
-  static const uint8_t LIBSAME_INITIAL_HEADER[] = {
+  static const u8 LIBSAME_INITIAL_HEADER[] = {
       PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE,
       PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE,
       PREAMBLE, PREAMBLE, 'Z',      'C',      'Z',      'C',      '-',
@@ -383,14 +383,14 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
             LIBSAME_CALLSIGN_LEN);
 
   ctx->afsk_samples_per_bit =
-      (unsigned int)roundf(AFSK_BIT_DURATION * (float)ctx->sample_rate);
+      (uint)roundf(AFSK_BIT_DURATION * (float)ctx->sample_rate);
 
   // clang-format off
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_FIRST] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_SECOND] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_HEADER_THIRD] =
   AFSK_BITS_PER_CHAR * ctx->afsk_samples_per_bit *
-  (unsigned int)ctx->header_size;
+  (uint)ctx->header_size;
 
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_FIRST] =
   ctx->seq_samples_remaining[LIBSAME_SEQ_STATE_AFSK_EOM_SECOND] =
@@ -419,19 +419,19 @@ void libsame_ctx_init(struct libsame_gen_ctx *const restrict ctx,
 /// libsame_ctx_init() before calling this function.
 ///
 /// @param ctx The generation context.
-void libsame_samples_gen(struct libsame_gen_ctx *const restrict ctx) {
-  LIBSAME_ASSERT(ctx != NULL);
+void libsame_samples_gen(struct libsame_gen_ctx *const ctx) {
+  assert(ctx != NULL);
 
-  static const uint8_t EOM_HEADER[] = {
+  static const u8 EOM_HEADER[] = {
       PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE,
       PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE, PREAMBLE,
       PREAMBLE, PREAMBLE, 'N',      'N',      'N',      'N'};
 
   // Tried to generate a SAME header using a context for which a SAME header was
   // already generated; bug.
-  LIBSAME_ASSERT(ctx->seq_state < LIBSAME_SEQ_STATE_NUM);
+  assert(ctx->seq_state < LIBSAME_SEQ_STATE_NUM);
 
-  for (unsigned int sample_count = 0; sample_count < LIBSAME_SAMPLES_NUM_MAX;
+  for (uint sample_count = 0; sample_count < LIBSAME_SAMPLES_NUM_MAX;
        ++sample_count) {
     switch (ctx->seq_state) {
       case LIBSAME_SEQ_STATE_AFSK_HEADER_FIRST:
@@ -461,7 +461,7 @@ void libsame_samples_gen(struct libsame_gen_ctx *const restrict ctx) {
         break;
 
       default:
-        LIBSAME_UNREACHABLE;
+        UNREACHABLE;
         break;
     }
     ctx->seq_samples_remaining[ctx->seq_state]--;
@@ -493,9 +493,6 @@ enum libsame_gen_engine libsame_gen_engine_get(void) {
 #endif
 }
 
-/// Retrieves the full description of the generation engine in use.
-///
-/// @returns The full description of the generation engine in use.
 const char *libsame_gen_engine_desc_get(void) {
 #if defined(LIBSAME_CONFIG_SINE_USE_LIBC)
   return "libc sinf()";
@@ -511,18 +508,10 @@ const char *libsame_gen_engine_desc_get(void) {
 #endif
 }
 
-/// Retrieves both the minimum and maximum number of seconds an attention signal
-/// can be.
-///
-/// An example usage for this function is to set the minimum/maximum values on a
-/// GUI spinbox governing this attribute.
-///
-/// @param min Where to store the minimum duration of the attention signal.
-/// @param max Where to store the maximum duration of the attention signal.
-void libsame_attn_sig_durations_get(unsigned int *const restrict min,
-                                    unsigned int *const restrict max) {
-  LIBSAME_ASSERT(min != NULL);
-  LIBSAME_ASSERT(max != NULL);
+void libsame_attn_sig_durations_get(uint *const restrict min,
+                                    uint *const restrict max) {
+  assert(min != NULL);
+  assert(max != NULL);
 
   *min = ATTN_SIG_DURATION_MIN;
   *max = ATTN_SIG_DURATION_MAX;

@@ -51,9 +51,8 @@ check_include_file(stdint.h _STDINT_H_)
 configure_file(config.h.in libsame_config.h @ONLY)
 
 set(SRCS libsame.c)
-set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/compiler.h
-         ${PROJECT_SOURCE_DIR}/include/libsame/debug.h
-         ${PROJECT_SOURCE_DIR}/include/libsame/libsame.h)
+set(HDRS ${PROJECT_SOURCE_DIR}/include/libsame/libsame.h
+         ${PROJECT_SOURCE_DIR}/include/libsame/types.h)
 
 # XXX: While we could compile the library as object files to avoid compiling
 # twice (once for shared, once for static), this has the unfortunate
